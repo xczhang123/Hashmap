@@ -35,7 +35,7 @@ void hash_map_rehash(hash_map *hm) {
 
 hash_map* hash_map_init(size_t size, size_t (*hash)(void*), int (*cmp)(void*,void*),
                 void (*key_destruct)(void*), void (*value_destruct)(void*)) {
-    hash_map *hm = malloc(sizeof(hash_map));
+    hash_map *hm = (hash_map*)malloc(sizeof(hash_map));
     hm->capacity = size;
     hm->size = 0;
     hm->data = (linkedlist**)malloc(sizeof(*hm->data) * hm->capacity);
