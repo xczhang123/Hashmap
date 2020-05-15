@@ -25,7 +25,7 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
 void list_add_all(linkedlist *target, linkedlist *src, int (*cmp)(void*,void*), 
                 void (*key_destruct)(void*), void (*value_destruct)(void*));
 
-int find_key(linkedlist *list, node *n, void *k, int (*cmp)(void*,void*));
+int find_key(node *n, void *k, int (*cmp)(void*,void*));
 
 node* list_get(linkedlist *list, void *k, int (*cmp)(void*,void*));
 

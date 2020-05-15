@@ -5,7 +5,7 @@ void hash_map_rehash(hash_map *hm) {
     linkedlist *temp = list_init();
 
     //Add all entries to temp bucket list
-    for (int i = 0; i < hm->capacity; i++) {
+    for (size_t i = 0; i < hm->capacity; i++) {
         linkedlist *list = hm->data[i];
         list_add_all(temp, list, hm->cmp, hm->key_destruct, hm->value_destruct);
     }
@@ -15,7 +15,7 @@ void hash_map_rehash(hash_map *hm) {
     hm->size = 0;
     hm->data = realloc(hm->data, sizeof(*hm->data)*(hm->capacity));
     // Free old linkedlists and reinitializing
-    for (int i = 0; i < hm->capacity/2; i++) {
+    for (size_t i = 0; i < hm->capacity/2; i++) {
         linkedlist *list = hm->data[i];
         if (list->head != NULL) {
             list_free_without_key_value(list);
@@ -23,7 +23,7 @@ void hash_map_rehash(hash_map *hm) {
         }
     }
     // Initialize newly created buckets
-    for (int i = hm->capacity/2; i < hm->capacity; i++) {
+    for (size_t i = hm->capacity/2; i < hm->capacity; i++) {
         hm->data[i] = list_init();
     }
 
@@ -39,7 +39,7 @@ hash_map* hash_map_init(size_t size, size_t (*hash)(void*), int (*cmp)(void*,voi
     hm->capacity = size;
     hm->size = 0;
     hm->data = (linkedlist**)malloc(sizeof(*hm->data) * hm->capacity);
-    for (int i = 0; i < hm->capacity; i++) {
+    for (size_t i = 0; i < hm->capacity; i++) {
         hm->data[i] = list_init();
     }
     hm->hash = hash;
@@ -117,23 +117,23 @@ int cmp(void* k1, void* k2) {
     }
 }
 
-void key_destruct(void *k) {
-    int *i = (int*)k;
-    free(i);
-}
+// void key_destruct(void *k) {
+//     int *i = (int*)k;
+//     free(i);
+// }
 
-void value_destruct(void *v) {
-    int *i = (int*)v;
-    free(i);
-}
+// void value_destruct(void *v) {
+//     int *i = (int*)v;
+//     free(i);
+// }
 
-size_t hash(void *k) {
-    return ((*(int*)k) % (HASH_MAP_DEF_CAPACITY));
-}
+// size_t hash(void *k) {
+//     return ((*(int*)k) % (HASH_MAP_DEF_CAPACITY));
+// }
 
 void hash_map_free(hash_map *hm) {
 
-    for (int i = 0; i < hm->capacity; i++) {
+    for (size_t i = 0; i < hm->capacity; i++) {
         linkedlist *list = hm->data[i];
         list_free(list, hm->key_destruct, hm->value_destruct);
     }
@@ -144,104 +144,104 @@ void hash_map_free(hash_map *hm) {
 
 
 
-typedef struct command command_t;
+// typedef struct command command_t;
 
-struct command {
-	char* str;
-	int (*exe)();
-};
+// struct command {
+// 	char* str;
+// 	int (*exe)();
+// };
 
-int test_not_safe1() {
-    int key[] = {99, 100, 101, 102, 103};
-    int value[] = {1, 2, 3, 4, 5};
+// int test_not_safe1() {
+//     int key[] = {99, 100, 101, 102, 103};
+//     int value[] = {1, 2, 3, 4, 5};
 
-    hash_map *hm = hash_map_init(HASH_MAP_DEF_CAPACITY, &hash, &cmp,
-                                &key_destruct, &value_destruct);
-    for (int i = 0; i < 25; i++) {
-        int *k = malloc(sizeof(int));
-        memcpy(k, &key[i%5], sizeof(int));
-        int *v = malloc(sizeof(int));
-        memcpy(v, &value[i%5], sizeof(int));
-        hash_map_add(hm, k, v);
-    }
+//     hash_map *hm = hash_map_init(HASH_MAP_DEF_CAPACITY, &hash, &cmp,
+//                                 &key_destruct, &value_destruct);
+//     for (int i = 0; i < 25; i++) {
+//         int *k = malloc(sizeof(int));
+//         memcpy(k, &key[i%5], sizeof(int));
+//         int *v = malloc(sizeof(int));
+//         memcpy(v, &value[i%5], sizeof(int));
+//         hash_map_add(hm, k, v);
+//     }
 
-    assert(hm->size == 5);
+//     assert(hm->size == 5);
 
-    hash_map_free(hm);
+//     hash_map_free(hm);
 
-    return 1;
-}
+//     return 1;
+// }
 
-int test_not_safe2() {
-    hash_map *hm = hash_map_init(HASH_MAP_DEF_CAPACITY, &hash, &cmp,
-                                &key_destruct, &value_destruct);
-    for (int i = 15; i < 30; i++) {
-        int *k = malloc(sizeof(int));
-        memcpy(k, &i, sizeof(int));
-        int *v = malloc(sizeof(int));
-        memcpy(v, &i, sizeof(int));
-        hash_map_add(hm, k, v);
-    }
+// int test_not_safe2() {
+//     hash_map *hm = hash_map_init(HASH_MAP_DEF_CAPACITY, &hash, &cmp,
+//                                 &key_destruct, &value_destruct);
+//     for (int i = 15; i < 30; i++) {
+//         int *k = malloc(sizeof(int));
+//         memcpy(k, &i, sizeof(int));
+//         int *v = malloc(sizeof(int));
+//         memcpy(v, &i, sizeof(int));
+//         hash_map_add(hm, k, v);
+//     }
 
-    assert(hm->size == 15);
-    assert(hm->capacity == 32);
+//     assert(hm->size == 15);
+//     assert(hm->capacity == 32);
 
-    hash_map_free(hm);
+//     hash_map_free(hm);
 
-    return 1;
-}
+//     return 1;
+// }
 
-int test_not_safe3() {
-    hash_map *hm = hash_map_init(HASH_MAP_DEF_CAPACITY, &hash, &cmp,
-                                &key_destruct, &value_destruct);
-    for (int i = 15; i < 30; i++) {
-        int *k = malloc(sizeof(int));
-        memcpy(k, &i, sizeof(int));
-        int *v = malloc(sizeof(int));
-        memcpy(v, &i, sizeof(int));
-        hash_map_add(hm, k, v);
-    }
+// int test_not_safe3() {
+//     hash_map *hm = hash_map_init(HASH_MAP_DEF_CAPACITY, &hash, &cmp,
+//                                 &key_destruct, &value_destruct);
+//     for (int i = 15; i < 30; i++) {
+//         int *k = malloc(sizeof(int));
+//         memcpy(k, &i, sizeof(int));
+//         int *v = malloc(sizeof(int));
+//         memcpy(v, &i, sizeof(int));
+//         hash_map_add(hm, k, v);
+//     }
 
-    for (int i = 15; i < 30; i++) {
-        int target = i;
-        hash_map_delete(hm, &target);
-    }
+//     for (int i = 15; i < 30; i++) {
+//         int target = i;
+//         hash_map_delete(hm, &target);
+//     }
 
-    assert(hm->size == 0);
-    assert(hm->capacity == 32);
+//     assert(hm->size == 0);
+//     assert(hm->capacity == 32);
 
-    hash_map_free(hm);
+//     hash_map_free(hm);
 
-    return 1;
-}
+//     return 1;
+// }
 
-command_t tests[] = {
-   {"test_not_safe1", &test_not_safe1},
-   {"test_not_safe2", &test_not_safe2},
-   {"test_not_safe3", &test_not_safe3}
-};
+// command_t tests[] = {
+//    {"test_not_safe1", &test_not_safe1},
+//    {"test_not_safe2", &test_not_safe2},
+//    {"test_not_safe3", &test_not_safe3}
+// };
 
 
-int main(int argc, char** argv) {
-  int test_n = sizeof(tests) / sizeof(command_t);
-  if(argc >= 2) {
-		for(int i = 0; i < test_n; i++) {
-			if(strcmp(argv[1], tests[i].str) == 0) {
-				if(tests[i].exe()) {
-				  fprintf(stdout, "%s Passed\n", tests[i].str);
-				} else {
-				  fprintf(stdout, "%s Failed\n", tests[i].str);
-				}
-			}
-		}
-        if (strcmp(argv[1], "all") == 0) {
-            for(int i = 0; i < test_n; i++) {
-				if(tests[i].exe()) {
-				  fprintf(stdout, "%s Passed\n", tests[i].str);
-				} else {
-				  fprintf(stdout, "%s Failed\n", tests[i].str);
-				}
-            }
-        }
-	}
-}
+// int main(int argc, char** argv) {
+//   int test_n = sizeof(tests) / sizeof(command_t);
+//   if(argc >= 2) {
+// 		for(int i = 0; i < test_n; i++) {
+// 			if(strcmp(argv[1], tests[i].str) == 0) {
+// 				if(tests[i].exe()) {
+// 				  fprintf(stdout, "%s Passed\n", tests[i].str);
+// 				} else {
+// 				  fprintf(stdout, "%s Failed\n", tests[i].str);
+// 				}
+// 			}
+// 		}
+//         if (strcmp(argv[1], "all") == 0) {
+//             for(int i = 0; i < test_n; i++) {
+// 				if(tests[i].exe()) {
+// 				  fprintf(stdout, "%s Passed\n", tests[i].str);
+// 				} else {
+// 				  fprintf(stdout, "%s Failed\n", tests[i].str);
+// 				}
+//             }
+//         }
+// 	}
+// }

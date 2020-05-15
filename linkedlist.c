@@ -20,7 +20,7 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
             node* cursor = list->head;
             while (cursor->next != NULL) {
                 //If k already exists
-                if (find_key(list, cursor, k, cmp) == 1) {
+                if (find_key(cursor, k, cmp) == 1) {
                     key_destruct(k);
                     value_destruct(cursor->v);
                     cursor->v = v;
@@ -50,7 +50,7 @@ void list_add_all(linkedlist *target, linkedlist *src, int (*cmp)(void*,void*),
     }
 }
 
-int find_key(linkedlist *list, node *n, void *k, int (*cmp)(void*,void*)) {
+int find_key(node *n, void *k, int (*cmp)(void*,void*)) {
     if (cmp(n->k, k) == 1) {
         return 1;
     } else {
@@ -60,8 +60,8 @@ int find_key(linkedlist *list, node *n, void *k, int (*cmp)(void*,void*)) {
 
 node* list_get(linkedlist *list, void *k, int (*cmp)(void*,void*)) {
     node *cursor = list->head;
-    for (int i = 0 ; i < list->size; i++) {
-        if (find_key(list, cursor, k, cmp) == 1) {
+    for (size_t i = 0 ; i < list->size; i++) {
+        if (find_key(cursor, k, cmp) == 1) {
             return cursor;
         }
         cursor = cursor->next;
@@ -76,7 +76,7 @@ int list_delete(linkedlist *list, void *k, int (*cmp)(void*,void*), void (*key_d
     node *prev = NULL;
 
     while (curr != NULL) {
-        if (find_key(list, curr, k, cmp) == 1) {
+        if (find_key(curr, k, cmp) == 1) {
             //If it is the first node
             if (prev == NULL) {
                 list->head = curr->next;
