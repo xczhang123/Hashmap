@@ -54,7 +54,7 @@ void hash_map_add(hash_map *hm, void *k, void *v) {
 
     //Load factor -> if greater than 75%, we rehash the table
     float n = 0.0f;
-    size_t index = hm->hash(k);
+    size_t index = hm->hash(k) % hm->capacity;
 
     //Increment the size if the bucket is empty before the add
     if (hm->data[index]->head == NULL) {
@@ -83,7 +83,7 @@ void hash_map_add_all(hash_map *hm, linkedlist* src) {
 
 void hash_map_delete(hash_map *hm, void *k) {
 
-    size_t index = hm->hash(k);
+    size_t index = hm->hash(k) % hm->capacity;
     
     int deleted = list_delete(hm->data[index], k, hm->cmp, hm->key_destruct, hm->value_destruct);
 
@@ -94,7 +94,7 @@ void hash_map_delete(hash_map *hm, void *k) {
 
 void* hash_map_get(hash_map *hm, void *k) {
 
-    size_t index = hm->hash(k);
+    size_t index = hm->hash(k) % hm->capacity;
 
     node *n = list_get(hm->data[index], k, hm->cmp);
 
