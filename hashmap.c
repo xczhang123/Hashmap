@@ -19,12 +19,12 @@ void hash_map_remove_entry(struct hash_map* map, void* k) {
 }
 
 void* hash_map_get_value_ref(struct hash_map* map, void* k) {
-    void *result = hash_map_get(map, k);
+    void *v = hash_map_get(map, k);
 
-    if (result == NULL) {
+    if (v == NULL) {
         return NULL;
     } else {
-        return result;
+        return v;
     }
 }
 
@@ -76,11 +76,16 @@ void hash_map_destroy(struct hash_map* map) {
 //     struct thread_arg *a = (struct thread_arg*) arg;
 //     for (int i = 0; i < a->n; i++) {
 //         int *k = malloc(sizeof(int));
-//         memcpy(k, &a->start, sizeof(int));
+//         // memcpy(k, &a->start, sizeof(int));
+//         int i = 1;
+//         memcpy(k, &i, sizeof(int));
 //         int *v = malloc(sizeof(int));
-//         memcpy(v, &a->start, sizeof(int));
+//         memcpy(v, &i, sizeof(int));
+//         // memcpy(v, &a->start, sizeof(int));
 //         hash_map_add(a->hm, k, v);
 //         a->start++;
+
+//         // printf("The key is %d and the value is %d\n", *(int*)k, *(int*)v);
 //     }
 
 //     free(a);
@@ -120,10 +125,10 @@ void hash_map_destroy(struct hash_map* map) {
 // int test_safe_add() {
 //     hash_map* hm = hash_map_new(&hash, &cmp,&key_destruct, &value_destruct);
 
-//     pthread_t threads[5];
+//     pthread_t threads[2];
 
 //     int n = 5;
-//     for (int i = 0; i < 5; i++) {
+//     for (int i = 0; i < 2; i++) {
 //         struct thread_arg *a = malloc(sizeof(struct thread_arg));
 //         a->hm = hm;
 //         a->start = n * i;
@@ -131,7 +136,7 @@ void hash_map_destroy(struct hash_map* map) {
 //         pthread_create(threads+i, NULL, thread_add, a);
 //     }
 
-//     for (int i = 0; i < 5; i++) {
+//     for (int i = 0; i < 2; i++) {
 //         pthread_join(threads[i], NULL);
 //     }
 
@@ -144,8 +149,10 @@ void hash_map_destroy(struct hash_map* map) {
 //         }
 //     }
 
-//     printf("%zu\n", hm->data[0]->size);
-//     printf("%zu\n", hm->size);
+//     // printf("%zu\n", hm->data[0]->size);
+//     // printf("%zu\n", hm->size);
+
+//     assert(hm->data[0]->size == 1);
 
 //     hash_map_destroy(hm);
 
@@ -209,7 +216,7 @@ void hash_map_destroy(struct hash_map* map) {
 //     for (int i = 0; i < 5; i++) {
 //         pthread_join(threads[i], NULL);
 //     }
-    
+        
 //     //Delete everything and get something
 //     for (int i = 0; i < 10; i++) {
 //         struct thread_arg *a = malloc(sizeof(struct thread_arg));
@@ -236,7 +243,7 @@ void hash_map_destroy(struct hash_map* map) {
 //     }
 
 //     // assert(hm->capacity == 32);
-//     // printf("%zu\n", hm->size);
+//     printf("%zu\n", hm->size);
 //     assert(hm->size == 0);
 
 //     hash_map_destroy(hm);

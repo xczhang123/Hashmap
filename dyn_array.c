@@ -64,6 +64,8 @@ hash_map* hash_map_init(size_t size, size_t (*hash)(void*), int (*cmp)(void*,voi
 
 void hash_map_add(hash_map *hm, void *k, void *v) {
 
+    // printf("Before list size is %ld\n", hm->data[0]->size);
+
     //Load factor -> if greater than 75%, we rehash the table
     float n = 0.0f;
     
@@ -81,7 +83,9 @@ void hash_map_add(hash_map *hm, void *k, void *v) {
     pthread_mutex_unlock(&hm->lock);
 
     //Fine-grained lock applied
+    pthread_mutex_lock(&hm->data[index]->lock);
     list_add(hm->data[index], k, v, hm->cmp, hm->key_destruct, hm->value_destruct);
+    pthread_mutex_unlock(&hm->data[index]->lock);
 
     //Calculate Load factor
     pthread_mutex_lock(&hm->lock);
@@ -118,6 +122,7 @@ void hash_map_delete(hash_map *hm, void *k) {
     pthread_mutex_lock(&hm->data[index]->lock);
     int deleted = list_delete(hm->data[index], k, hm->cmp, hm->key_destruct, hm->value_destruct);
     //If the bucket is empty after the deletion
+    
     if (deleted && hm->data[index]->size == 0) {
         hm->size--;
     }
