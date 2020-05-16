@@ -26,16 +26,16 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
             node* prev = NULL;
             while (cursor != NULL) {
                 // If k already exists
-                pthread_mutex_lock(&cursor->lock);
+                // pthread_mutex_lock(&cursor->lock);
                 if (find_key(cursor, k, cmp) == 1) {
                     key_destruct(cursor->k);
                     value_destruct(cursor->v);
                     cursor->k = k;
                     cursor->v = v;
-                    pthread_mutex_unlock(&cursor->lock);
+                    // pthread_mutex_unlock(&cursor->lock);
                     return;
                 }
-                pthread_mutex_unlock(&cursor->lock);
+                // pthread_mutex_unlock(&cursor->lock);
                 prev = cursor;
                 cursor = cursor->next;
             }
