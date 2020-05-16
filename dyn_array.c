@@ -59,10 +59,8 @@ void hash_map_add(hash_map *hm, void *k, void *v) {
 
     //Load factor -> if greater than 75%, we rehash the table
     float n = 0.0f;
-    
-    pthread_mutex_lock(&hm->lock);
+
     size_t index = hm->hash(k) % hm->capacity;
-    pthread_mutex_unlock(&hm->lock);
 
     //Increment the size if the bucket is empty before the add
     pthread_mutex_lock(&hm->lock);
@@ -104,9 +102,9 @@ void hash_map_rehash_add_all(hash_map *hm, linkedlist* src) {
 
 void hash_map_delete(hash_map *hm, void *k) {
 
-    pthread_mutex_lock(&hm->lock);
     size_t index = hm->hash(k) % hm->capacity;
 
+    pthread_mutex_lock(&hm->lock);
     pthread_mutex_lock(&hm->data[index]->lock);
     int deleted = list_delete(hm->data[index], k, hm->cmp, hm->key_destruct, hm->value_destruct);
     //If the bucket is empty after the deletion
@@ -119,14 +117,11 @@ void hash_map_delete(hash_map *hm, void *k) {
 
 void* hash_map_get(hash_map *hm, void *k) {
 
-    pthread_mutex_lock(&hm->lock);
     size_t index = hm->hash(k) % hm->capacity;
 
     pthread_mutex_lock(&hm->data[index]->lock);
     void *n = list_get(hm->data[index], k, hm->cmp);
-
     pthread_mutex_unlock(&hm->data[index]->lock);
-    pthread_mutex_unlock(&hm->lock);
 
     //If key is found, return the value; otherwise, return NULL
     if (n != NULL) {
