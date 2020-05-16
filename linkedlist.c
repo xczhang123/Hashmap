@@ -48,10 +48,10 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
             if (prev->next == NULL) {
                 prev->next = n;
             } else {
-                while(cursor->next != NULL) {
-                    cursor = cursor->next;
+                while(prev->next != NULL) {
+                    prev = prev->next;
                 }
-                cursor->next = n;
+                prev->next = n;
             }
             pthread_mutex_unlock(&n->lock);
         }
