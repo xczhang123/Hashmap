@@ -27,8 +27,6 @@ void hash_map_rehash(hash_map *hm) {
         hm->data[i] = list_init();
     }
 
-    // printf("The capacity is :%ld\n", hm->capacity);
-
     //Add all entries in temp to original hash table
     hash_map_rehash_add_all(hm, temp);
     //Free temp bucket
@@ -62,14 +60,15 @@ void hash_map_add(hash_map *hm, void *k, void *v) {
 
     size_t index = hm->hash(k) % hm->capacity;
 
+    pthread_mutex_lock(&hm->data[index]->lock); 
     //Increment the size if the bucket is empty before the add
-    pthread_mutex_lock(&hm->lock);
     if (hm->data[index]->head == NULL) {
+        pthread_mutex_lock(&hm->lock);
         hm->size++;
+        pthread_mutex_unlock(&hm->lock);
     }
-    pthread_mutex_unlock(&hm->lock);
+    pthread_mutex_unlock(&hm->data[index]->lock);
 
-    //Fine-grained lock applied
     pthread_mutex_lock(&hm->data[index]->lock);
     list_add(hm->data[index], k, v, hm->cmp, hm->key_destruct, hm->value_destruct);
     pthread_mutex_unlock(&hm->data[index]->lock);
@@ -104,15 +103,15 @@ void hash_map_delete(hash_map *hm, void *k) {
 
     size_t index = hm->hash(k) % hm->capacity;
 
-    pthread_mutex_lock(&hm->lock);
     pthread_mutex_lock(&hm->data[index]->lock);
     int deleted = list_delete(hm->data[index], k, hm->cmp, hm->key_destruct, hm->value_destruct);
     //If the bucket is empty after the deletion
     if (deleted && hm->data[index]->size == 0) {
+        pthread_mutex_lock(&hm->lock);
         hm->size--;
+        pthread_mutex_unlock(&hm->lock);
     }
     pthread_mutex_unlock(&hm->data[index]->lock);
-    pthread_mutex_unlock(&hm->lock);
 }
 
 void* hash_map_get(hash_map *hm, void *k) {
