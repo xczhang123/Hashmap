@@ -112,11 +112,10 @@ void hash_map_rehash_add_all(hash_map *hm, linkedlist* src) {
 
 void hash_map_delete(hash_map *hm, void *k) {
 
-    size_t index = hm->hash(k) % hm->capacity;
-    
     pthread_mutex_lock(&hm->lock);
-    pthread_mutex_lock(&hm->data[index]->lock);
+    size_t index = hm->hash(k) % hm->capacity;
 
+    pthread_mutex_lock(&hm->data[index]->lock);
     int deleted = list_delete(hm->data[index], k, hm->cmp, hm->key_destruct, hm->value_destruct);
     //If the bucket is empty after the deletion
     if (deleted && hm->data[index]->size == 0) {
@@ -128,11 +127,16 @@ void hash_map_delete(hash_map *hm, void *k) {
 
 void* hash_map_get(hash_map *hm, void *k) {
 
+    pthread_mutex_lock(&hm->lock);
     size_t index = hm->hash(k) % hm->capacity;
 
+    pthread_mutex_lock(&hm->data[index]->lock);
     node *n = list_get(hm->data[index], k, hm->cmp);
 
-    //If key is found, return the value
+    pthread_mutex_unlock(&hm->data[index]->lock);
+    pthread_mutex_unlock(&hm->lock);
+
+    //If key is found, return the value; otherwise, return NULL
     if (n != NULL) {
         return n->v;
     } else {

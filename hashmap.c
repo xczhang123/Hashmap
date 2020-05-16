@@ -34,6 +34,7 @@ void hash_map_destroy(struct hash_map* map) {
 
 
 // typedef struct command command_t;
+// pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 // struct command {
 // 	char* str;
@@ -97,6 +98,21 @@ void hash_map_destroy(struct hash_map* map) {
 
 //     free(a);
 
+//     return NULL;
+// }
+
+// void* thread_get(void *arg) {
+//     struct thread_arg *a = (struct thread_arg*) arg;
+//     for (int i = 0; i < a->n; i++) {
+//         pthread_mutex_lock(&mutex);
+//         int k = a->start;
+//         void* result = hash_map_get_value_ref(a->hm, &k);
+//         printf("The key is %d and the result is %p\n", k, result);
+//         a->start++;
+//         pthread_mutex_unlock(&mutex);
+//     }
+
+//     free(a);
 //     return NULL;
 // }
 
@@ -170,17 +186,67 @@ void hash_map_destroy(struct hash_map* map) {
 //     printf("%zu\n", hm->size);
 //     assert(hm->size == 0);
 
-//     // printf("%zu\n", (hm->data[0]->size)+1);
+//     hash_map_destroy(hm);
+
+//     return 1;
+// }
+
+// int test_safe_get() {
+//      hash_map* hm = hash_map_new(&hash, &cmp,&key_destruct, &value_destruct);
+
+//     pthread_t threads[10];
+
+//     int n = 5;
+//     for (int i = 0; i < 5; i++) {
+//         struct thread_arg *a = malloc(sizeof(struct thread_arg));
+//         a->hm = hm;
+//         a->start = n * i;
+//         a->n = n;
+//         pthread_create(threads+i, NULL, thread_add, a);
+//     }
+
+//     for (int i = 0; i < 5; i++) {
+//         pthread_join(threads[i], NULL);
+//     }
+    
+//     //Delete everything and get something
+//     for (int i = 0; i < 5; i++) {
+//         struct thread_arg *a = malloc(sizeof(struct thread_arg));
+//         struct thread_arg *b = malloc(sizeof(struct thread_arg));
+//         a->hm = hm;
+//         a->start = n * i;
+//         a->n = n;
+
+//         b->hm = hm;
+//         b->start = n * i;
+//         b->n = n;
+        
+//         if (i % 2 == 0) {
+//             pthread_create(threads+i+5, NULL, thread_get, b);
+//             pthread_create(threads+i, NULL, thread_delete, a);
+//         } else {
+//             pthread_create(threads+i, NULL, thread_delete, a);
+//             pthread_create(threads+i+5, NULL, thread_get, b);
+//         }
+//     }
+
+//     for (int i = 0; i < 10; i++) {
+//         pthread_join(threads[i], NULL);
+//     }
+
+//     assert(hm->capacity == 32);
+//     // printf("%zu\n", hm->size);
+//     assert(hm->size == 0);
 
 //     hash_map_destroy(hm);
 
 //     return 1;
 // }
 
-
 // command_t tests[] = {
 //    {"test_safe_add", &test_safe_add},
-//    {"test_safe_delete", &test_safe_delete}
+//    {"test_safe_delete", &test_safe_delete},
+//    {"test_safe_get", &test_safe_get}
 // };
 
 // int main(int argc, char** argv) {
