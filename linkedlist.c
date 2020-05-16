@@ -77,7 +77,7 @@ int find_key(node *n, void *k, int (*cmp)(void*,void*)) {
 
 node* list_get(linkedlist *list, void *k, int (*cmp)(void*,void*)) {
     node *cursor = list->head;
-    for (size_t i = 0 ; i < list->size; i++) {
+    while (cursor != NULL) {
         if (find_key(cursor, k, cmp) == 1) {
             return cursor;
         }
