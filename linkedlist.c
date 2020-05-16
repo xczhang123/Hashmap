@@ -23,6 +23,7 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
         } else {
             // pthread_mutex_unlock(&list->lock);
             node* cursor = list->head;
+            node* prev = NULL;
             while (cursor != NULL) {
                 // If k already exists
                 if (find_key(cursor, k, cmp) == 1) {
@@ -33,6 +34,7 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
 
                     return;
                 }
+                prev = cursor;
                 cursor = cursor->next;
             }
             //If k does not exist
@@ -43,8 +45,8 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
             pthread_mutex_init(&n->lock, NULL);
 
             // pthread_mutex_lock(&n->lock);
-            if (cursor->next == NULL) {
-                cursor->next = n;
+            if (prev->next == NULL) {
+                prev->next = n;
             }
             // } else {
             //     while(cursor->next != NULL) {

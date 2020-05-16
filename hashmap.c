@@ -76,12 +76,12 @@ void hash_map_destroy(struct hash_map* map) {
 //     struct thread_arg *a = (struct thread_arg*) arg;
 //     for (int i = 0; i < a->n; i++) {
 //         int *k = malloc(sizeof(int));
-//         // memcpy(k, &a->start, sizeof(int));
-//         int i = 1;
-//         memcpy(k, &i, sizeof(int));
+//         memcpy(k, &a->start, sizeof(int));
+//         // int i = 1;
+//         // memcpy(k, &i, sizeof(int));
 //         int *v = malloc(sizeof(int));
-//         memcpy(v, &i, sizeof(int));
-//         // memcpy(v, &a->start, sizeof(int));
+//         // memcpy(v, &i, sizeof(int));
+//         memcpy(v, &a->start, sizeof(int));
 //         hash_map_add(a->hm, k, v);
 //         a->start++;
 
@@ -152,7 +152,7 @@ void hash_map_destroy(struct hash_map* map) {
 //     // printf("%zu\n", hm->data[0]->size);
 //     // printf("%zu\n", hm->size);
 
-//     assert(hm->data[0]->size == 1);
+//     // assert(hm->data[0]->size == 1);
 
 //     hash_map_destroy(hm);
 
