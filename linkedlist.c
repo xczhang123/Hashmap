@@ -12,16 +12,16 @@ linkedlist* list_init() {
 void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*), 
                 void (*key_destruct)(void*), void (*value_destruct)(void*)) {
     if (list != NULL) {
-        pthread_mutex_lock(&list->lock);
+        // pthread_mutex_lock(&list->lock);
         if (list->head == NULL) {
            list->head = (node*)malloc(sizeof(node));
            list->head->k = k;
            list->head->v = v;
            list->head->next = NULL;
            pthread_mutex_init(&list->head->lock, NULL);
-           pthread_mutex_unlock(&list->lock);
+        //    pthread_mutex_unlock(&list->lock);
         } else {
-            pthread_mutex_unlock(&list->lock);
+            // pthread_mutex_unlock(&list->lock);
             node* cursor = list->head;
             node* prev = NULL;
             while (cursor != NULL) {
@@ -46,7 +46,7 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
             n->next = NULL;
             pthread_mutex_init(&n->lock, NULL);
 
-            pthread_mutex_lock(&n->lock);
+            // pthread_mutex_lock(&n->lock);
             if (prev->next == NULL) {
                 prev->next = n;
             } else {
@@ -55,12 +55,12 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
                 }
                 prev->next = n;
             }
-            pthread_mutex_unlock(&n->lock);
+            // pthread_mutex_unlock(&n->lock);
         }
         
-        pthread_mutex_lock(&list->lock);
+        // pthread_mutex_lock(&list->lock);
         list->size++;
-        pthread_mutex_unlock(&list->lock);
+        // pthread_mutex_unlock(&list->lock);
     }
 }
 
@@ -81,11 +81,11 @@ int find_key(node *n, void *k, int (*cmp)(void*,void*)) {
     }
 }
 
-node* list_get(linkedlist *list, void *k, int (*cmp)(void*,void*)) {
+void* list_get(linkedlist *list, void *k, int (*cmp)(void*,void*)) {
     node *cursor = list->head;
     while (cursor != NULL) {
         if (find_key(cursor, k, cmp) == 1) {
-            return cursor;
+            return cursor->v;
         }
         cursor = cursor->next;
     }

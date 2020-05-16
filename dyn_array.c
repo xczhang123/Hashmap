@@ -27,15 +27,6 @@ void hash_map_rehash(hash_map *hm) {
         hm->data[i] = list_init();
     }
 
-    // for (int i = 0; i < hm->capacity; i++) {
-    //     linkedlist *list = hm->data[i];
-    //     node *cursor = list->head;
-    //     for (int j = 0; j < list->size; j++) {
-    //         printf("The key is %d, and value is %d\n", *(int*)cursor->k, *(int*)cursor->v);
-    //         cursor = cursor->next;
-    //     }
-    // }
-
     // printf("The capacity is :%ld\n", hm->capacity);
 
     //Add all entries in temp to original hash table
@@ -75,22 +66,21 @@ void hash_map_add(hash_map *hm, void *k, void *v) {
 
     //Increment the size if the bucket is empty before the add
     pthread_mutex_lock(&hm->lock);
-    pthread_mutex_lock(&hm->data[index]->lock);
     if (hm->data[index]->head == NULL) {
         hm->size++;
     }
-    pthread_mutex_unlock(&hm->data[index]->lock);
     pthread_mutex_unlock(&hm->lock);
 
     //Fine-grained lock applied
+    pthread_mutex_lock(&hm->data[index]->lock);
     list_add(hm->data[index], k, v, hm->cmp, hm->key_destruct, hm->value_destruct);
+    pthread_mutex_unlock(&hm->data[index]->lock);
 
     //Calculate Load factor
     pthread_mutex_lock(&hm->lock);
 	n = (1.0 * hm->size) / hm->capacity;
 	if (n >= 0.75) {
 		//rehashing
-		// printf("going to rehash\n");
 		hash_map_rehash(hm);
 	}
     pthread_mutex_unlock(&hm->lock);
@@ -120,7 +110,6 @@ void hash_map_delete(hash_map *hm, void *k) {
     pthread_mutex_lock(&hm->data[index]->lock);
     int deleted = list_delete(hm->data[index], k, hm->cmp, hm->key_destruct, hm->value_destruct);
     //If the bucket is empty after the deletion
-    
     if (deleted && hm->data[index]->size == 0) {
         hm->size--;
     }
@@ -134,14 +123,14 @@ void* hash_map_get(hash_map *hm, void *k) {
     size_t index = hm->hash(k) % hm->capacity;
 
     pthread_mutex_lock(&hm->data[index]->lock);
-    node *n = list_get(hm->data[index], k, hm->cmp);
+    void *n = list_get(hm->data[index], k, hm->cmp);
 
     pthread_mutex_unlock(&hm->data[index]->lock);
     pthread_mutex_unlock(&hm->lock);
 
     //If key is found, return the value; otherwise, return NULL
     if (n != NULL) {
-        return n->v;
+        return n;
     } else {
         return NULL;
     }
