@@ -83,9 +83,7 @@ void hash_map_add(hash_map *hm, void *k, void *v) {
     pthread_mutex_unlock(&hm->lock);
 
     //Fine-grained lock applied
-    pthread_mutex_lock(&hm->data[index]->lock);
     list_add(hm->data[index], k, v, hm->cmp, hm->key_destruct, hm->value_destruct);
-    pthread_mutex_unlock(&hm->data[index]->lock);
 
     //Calculate Load factor
     pthread_mutex_lock(&hm->lock);
