@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include "hashmap.h"
+#include <time.h>
+#include <unistd.h>
 
 typedef struct command command_t;
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -110,14 +112,14 @@ int test_safe_add() {
         pthread_join(threads[i], NULL);
     }
 
-    for (size_t i = 0; i < hm->capacity; i++) {
-        linkedlist *list = hm->data[i];
-        node *cursor = list->head;
-        for (size_t j = 0; j < list->size; j++) {
-            printf("The key is %d, and value is %d\n", *(int*)cursor->k, *(int*)cursor->v);
-            cursor = cursor->next;
-        }
-    }
+    // for (size_t i = 0; i < hm->capacity; i++) {
+    //     linkedlist *list = hm->data[i];
+    //     node *cursor = list->head;
+    //     for (size_t j = 0; j < list->size; j++) {
+    //         printf("The key is %d, and value is %d\n", *(int*)cursor->k, *(int*)cursor->v);
+    //         cursor = cursor->next;
+    //     }
+    // }
 
     // printf("%zu\n", hm->data[0]->size);
     // printf("%zu\n", hm->size);
@@ -161,7 +163,7 @@ int test_safe_delete() {
     }
 
     // assert(hm->capacity == 32);
-    printf("%zu\n", hm->size);
+    // printf("%zu\n", hm->size);
     assert(hm->size == 0);
 
     hash_map_destroy(hm);
@@ -213,7 +215,7 @@ int test_safe_get() {
     }
 
     // assert(hm->capacity == 32);
-    printf("%zu\n", hm->size);
+    // printf("%zu\n", hm->size);
     assert(hm->size == 0);
 
     hash_map_destroy(hm);
@@ -224,10 +226,10 @@ int test_safe_get() {
 int test_safe_complex() {
     hash_map* hm = hash_map_new(&hash, &cmp,&key_destruct, &value_destruct);
 
-    pthread_t threads[10];
+    pthread_t threads[500];
 
     int n = 5;
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 500; i++) {
         struct thread_arg *a = malloc(sizeof(struct thread_arg));
         struct thread_arg *b = malloc(sizeof(struct thread_arg));
         struct thread_arg *c = malloc(sizeof(struct thread_arg));
@@ -259,7 +261,7 @@ int test_safe_complex() {
         }
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 500; i++) {
         pthread_join(threads[i], NULL);
     }
 
@@ -279,6 +281,14 @@ command_t tests[] = {
 };
 
 int main(int argc, char** argv) {
+  double time_spend = 0.0;
+  clock_t begin = clock();
+
+//   time_t b = time(NULL);
+//   sleep(10);
+
+//   printf("Time is %ld seconds\n", e-b);
+
   int test_n = sizeof(tests) / sizeof(command_t);
   if(argc >= 2) {
 		for(int i = 0; i < test_n; i++) {
@@ -300,5 +310,11 @@ int main(int argc, char** argv) {
             }
         }
 	}
+    clock_t end = clock();
+    // time_t e = time(NULL);
+
+    time_spend = (double)(end - begin) / CLOCKS_PER_SEC;
+
+    printf("Time elapsed is %f seconds\n", time_spend);
 }
 

@@ -7,7 +7,9 @@ void hash_map_rehash(hash_map *hm) {
     //Add all entries to temp bucket list
     for (size_t i = 0; i < hm->capacity; i++) {
         linkedlist *list = hm->data[i];
+        pthread_mutex_lock(&list->lock);
         list_add_all(temp, list, hm->cmp, hm->key_destruct, hm->value_destruct);
+        pthread_mutex_unlock(&list->lock);
     }
 
     //Resize old hash table hm
@@ -17,20 +19,45 @@ void hash_map_rehash(hash_map *hm) {
     // Free old linkedlists and reinitializing
     for (size_t i = 0; i < hm->capacity/2; i++) {
         linkedlist *list = hm->data[i];
+        pthread_mutex_lock(&list->lock);
         if (list->head != NULL) {
             list_free_without_key_value(list);
             hm->data[i] = list_init();
         }
+        pthread_mutex_unlock(&list->lock);
     }
     // Initialize newly created buckets
     for (size_t i = hm->capacity/2; i < hm->capacity; i++) {
+        pthread_mutex_lock(&hm->data[i]->lock);
         hm->data[i] = list_init();
+        pthread_mutex_unlock(&hm->data[i]->lock);
     }
 
     //Add all entries in temp to original hash table
     hash_map_rehash_add_all(hm, temp);
     //Free temp bucket
     list_free_without_key_value(temp);
+}
+
+/* Will only be called when rehashing the whole table */
+void hash_map_rehash_add_all(hash_map *hm, linkedlist* src) {
+    node *cursor = src->head;
+    while (cursor != NULL) {
+        node *temp = cursor->next;
+        
+        size_t index = hm->hash(cursor->k) % hm->capacity;
+
+        pthread_mutex_lock(&hm->data[index]->lock);
+        if (hm->data[index]->head == NULL) {
+            pthread_mutex_lock(&hm->lock);
+            hm->size++;
+            pthread_mutex_unlock(&hm->lock);
+        }
+        list_add(hm->data[index], cursor->k, cursor->v, hm->cmp, hm->key_destruct, hm->value_destruct);
+        pthread_mutex_unlock(&hm->data[index]->lock);
+
+        cursor = temp;
+    }
 }
 
 hash_map* hash_map_init(size_t size, size_t (*hash)(void*), int (*cmp)(void*,void*),
@@ -53,8 +80,6 @@ hash_map* hash_map_init(size_t size, size_t (*hash)(void*), int (*cmp)(void*,voi
 
 void hash_map_add(hash_map *hm, void *k, void *v) {
 
-    // printf("Before list size is %ld\n", hm->data[0]->size);
-
     //Load factor -> if greater than 75%, we rehash the table
     float n = 0.0f;
 
@@ -74,29 +99,13 @@ void hash_map_add(hash_map *hm, void *k, void *v) {
     pthread_mutex_unlock(&hm->data[index]->lock);
 
     //Calculate Load factor
-    pthread_mutex_lock(&hm->lock);
+    // pthread_mutex_lock(&hm->lock);
 	n = (1.0 * hm->size) / hm->capacity;
 	if (n >= 0.75) {
 		//rehashing
 		hash_map_rehash(hm);
 	}
-    pthread_mutex_unlock(&hm->lock);
-}
-
-/* Will only be called when the thread holds hm->lock (i.e. when rehashing the whole table) */
-void hash_map_rehash_add_all(hash_map *hm, linkedlist* src) {
-    node *cursor = src->head;
-    while (cursor != NULL) {
-        node *temp = cursor->next;
-        
-        size_t index = hm->hash(cursor->k) % hm->capacity;
-        if (hm->data[index]->head == NULL) {
-            hm->size++;
-        }
-        list_add(hm->data[index], cursor->k, cursor->v, hm->cmp, hm->key_destruct, hm->value_destruct);
-
-        cursor = temp;
-    }
+    // pthread_mutex_unlock(&hm->lock);
 }
 
 void hash_map_delete(hash_map *hm, void *k) {
