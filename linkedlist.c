@@ -26,8 +26,9 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
             while (cursor->next != NULL) {
                 // If k already exists
                 if (find_key(cursor, k, cmp) == 1) {
-                    key_destruct(k);
+                    key_destruct(cursor->k);
                     value_destruct(cursor->v);
+                    cursor->k = k;
                     cursor->v = v;
                     return;
                 }
@@ -131,8 +132,6 @@ void list_free(linkedlist *list, void (*key_destruct)(void*), void (*value_destr
 
     while (curr != NULL) {
         node *temp = curr->next;
-        // printf("The key is: %d\n", *(int*)curr->k);
-        // printf("The value is: %d\n", *(int*)curr->v);
         key_destruct(curr->k);
         value_destruct(curr->v);
         free(curr);
