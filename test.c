@@ -3,13 +3,19 @@
 #include <time.h>
 #include <unistd.h>
 
-typedef struct command command_t;
-pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
-
 struct command {
 	char* str;
 	int (*exe)();
 };
+
+struct thread_arg {
+    struct hash_map* hm;
+    int start;
+    int n;
+};
+
+typedef struct command command_t;
+pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 
 int cmp(void* k1, void* k2) {
     int *i1 = (int*)k1;
@@ -23,7 +29,7 @@ int cmp(void* k1, void* k2) {
 }
 
 size_t hash(void *k) {
-    return (*(int*)k) % (1);
+    return ( (*(int*)k) * (39872) );
 }
 
 void key_destruct(void *k) {
@@ -35,12 +41,6 @@ void value_destruct(void *v) {
     int *i = (int*)v;
     free(i);
 }
-
-struct thread_arg {
-    struct hash_map* hm;
-    int start;
-    int n;
-};
 
 void* thread_add(void* arg) {
     struct thread_arg *a = (struct thread_arg*) arg;
