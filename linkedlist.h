@@ -4,14 +4,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 #include <assert.h>
 
 typedef struct linkedlist {
+    pthread_mutex_t lock;
     struct node *head;
     size_t size;
 } linkedlist;
 
 typedef struct node {
+    pthread_mutex_t lock;
     void *k;
     void *v;
     struct node *next;

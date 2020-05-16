@@ -4,6 +4,7 @@ linkedlist* list_init() {
     linkedlist *list = (linkedlist*)malloc(sizeof(linkedlist));
     list->head = NULL;
     list->size = 0;
+    pthread_mutex_init(&(list->lock), NULL);
 
     return list;
 }
@@ -11,15 +12,19 @@ linkedlist* list_init() {
 void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*), 
                 void (*key_destruct)(void*), void (*value_destruct)(void*)) {
     if (list != NULL) {
+        pthread_mutex_lock(&list->lock);
         if (list->head == NULL) {
            list->head = (node*)malloc(sizeof(node));
            list->head->k = k;
            list->head->v = v;
            list->head->next = NULL;
+           pthread_mutex_init(&list->head->lock, NULL);
+           pthread_mutex_unlock(&list->lock);
         } else {
+            pthread_mutex_unlock(&list->lock);
             node* cursor = list->head;
             while (cursor->next != NULL) {
-                //If k already exists
+                // If k already exists
                 if (find_key(cursor, k, cmp) == 1) {
                     key_destruct(k);
                     value_destruct(cursor->v);
@@ -33,11 +38,23 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
             n->k = k;
             n->v = v;
             n->next = NULL;
-            
-            cursor->next = n;
-        }
+            pthread_mutex_init(&n->lock, NULL);
 
+            pthread_mutex_lock(&n->lock);
+            if (cursor->next == NULL) {
+                cursor->next = n;
+            } else {
+                while(cursor->next != NULL) {
+                    cursor = cursor->next;
+                }
+                cursor->next = n;
+            }
+            pthread_mutex_unlock(&n->lock);
+        }
+        
+        pthread_mutex_lock(&list->lock);
         list->size++;
+        pthread_mutex_unlock(&list->lock);
     }
 }
 
@@ -71,15 +88,17 @@ node* list_get(linkedlist *list, void *k, int (*cmp)(void*,void*)) {
     return NULL;
 }
 
+/* Return 1 when key is found, 0 otherwise */
 int list_delete(linkedlist *list, void *k, int (*cmp)(void*,void*), void (*key_destruct)(void*), void (*value_destruct)(void*)) {
     node *curr = list->head;
     node *prev = NULL;
 
     while (curr != NULL) {
+        //If the key is found
         if (find_key(curr, k, cmp) == 1) {
             //If it is the first node
             if (prev == NULL) {
-                list->head = curr->next;
+                list->head = curr->next; //Change the head pointer
             } else {
                 prev->next = curr->next;
             }
@@ -90,7 +109,7 @@ int list_delete(linkedlist *list, void *k, int (*cmp)(void*,void*), void (*key_d
             list->size--;
             
             return 1;
-        } else {
+        } else { //Keep searching
             prev = curr;
             curr = curr->next;
         }
@@ -107,32 +126,13 @@ node* list_next(const node *n) {
     return n->next;
 }
 
-// int cmp(void* k1, void* k2) {
-//     int *i1 = (int*)k1;
-//     int *i2 = (int*)k2;
-
-//     if (*i1 == *i2) {
-//         return 1;
-//     } else {
-//         return 0;
-//     }
-// }
-
-// void key_destruct(void *k) {
-//     int *i = (int*)k;
-//     free(i);
-// }
-
-// void value_destruct(void *v) {
-//     int *i = (int*)v;
-//     free(i);
-// }
-
 void list_free(linkedlist *list, void (*key_destruct)(void*), void (*value_destruct)(void*)) {
     node *curr = list->head;
 
     while (curr != NULL) {
         node *temp = curr->next;
+        // printf("The key is: %d\n", *(int*)curr->k);
+        // printf("The value is: %d\n", *(int*)curr->v);
         key_destruct(curr->k);
         value_destruct(curr->v);
         free(curr);
@@ -159,6 +159,27 @@ void list_free_without_key_value(linkedlist *list) {
 // 	char* str;
 // 	int (*exe)();
 // };
+
+// int cmp(void* k1, void* k2) {
+//     int *i1 = (int*)k1;
+//     int *i2 = (int*)k2;
+
+//     if (*i1 == *i2) {
+//         return 1;
+//     } else {
+//         return 0;
+//     }
+// }
+
+// void key_destruct(void *k) {
+//     int *i = (int*)k;
+//     free(i);
+// }
+
+// void value_destruct(void *v) {
+//     int *i = (int*)v;
+//     free(i);
+// }
 
 // int test_not_safe() {
 //     int key[] = {1, 2, 3, 4, 1};
@@ -195,20 +216,14 @@ void list_free_without_key_value(linkedlist *list) {
 
 //     assert(head->size == 5);
 
-//     // node *cursor = head->head;
-//     // for (int i = 0; i < head->size; i++) {
-//     //     printf("Key: %d\n", *(int*)cursor->k);
-//     //     printf("Value: %d\n", *(int*)cursor->v);
-//     //     cursor = cursor->next;
-//     // }
-
 //     list_free(head, &key_destruct, &value_destruct);
 
 //     return 1;
 // }
 
+
 // command_t tests[] = {
-//    {"test_not_safe", &test_not_safe}
+//    {"test_not_safe", &test_not_safe},
 // };
 
 

@@ -1,5 +1,5 @@
 CC=clang
-CFLAGS=-Werror=vla -Wextra -Wall -Wshadow -Wswitch-default -std=c11
+CFLAGS=-Werror=vla -Wextra -Wall -Wshadow -Wswitch-default -std=c11 -pthread
 CFLAG_SAN=$(CFLAGS) -fsanitize=address -g
 DEPS=hashmap.h linkedlist.h dyn_array.h
 OBJ=linkedlist.o dyn_array.o

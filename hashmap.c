@@ -31,3 +31,178 @@ void* hash_map_get_value_ref(struct hash_map* map, void* k) {
 void hash_map_destroy(struct hash_map* map) {
 	hash_map_free(map);
 }
+
+
+// typedef struct command command_t;
+
+// struct command {
+// 	char* str;
+// 	int (*exe)();
+// };
+
+// int cmp(void* k1, void* k2) {
+//     int *i1 = (int*)k1;
+//     int *i2 = (int*)k2;
+
+//     if (*i1 == *i2) {
+//         return 1;
+//     } else {
+//         return 0;
+//     }
+// }
+
+// size_t hash(void *k) {
+//     return (*(int*)k) % (HASH_MAP_DEF_CAPACITY);
+// }
+
+// void key_destruct(void *k) {
+//     int *i = (int*)k;
+//     free(i);
+// }
+
+// void value_destruct(void *v) {
+//     int *i = (int*)v;
+//     free(i);
+// }
+
+// struct thread_arg {
+//     struct hash_map* hm;
+//     int start;
+//     int n;
+// };
+
+// void* thread_add(void* arg) {
+//     struct thread_arg *a = (struct thread_arg*) arg;
+//     for (int i = 0; i < a->n; i++) {
+//         int *k = malloc(sizeof(int));
+//         memcpy(k, &a->start, sizeof(int));
+//         int *v = malloc(sizeof(int));
+//         memcpy(v, &a->start, sizeof(int));
+//         hash_map_add(a->hm, k, v);
+//         a->start++;
+//     }
+
+//     free(a);
+
+//     return NULL;
+// }
+
+// void* thread_delete(void *arg) {
+//     struct thread_arg *a = (struct thread_arg*) arg;
+//     for (int i = 0; i < a->n; i++) {
+//         int k = a->start;
+//         hash_map_remove_entry(a->hm, &k);
+//         a->start++;
+//     }
+
+//     free(a);
+
+//     return NULL;
+// }
+
+// int test_safe_add() {
+//     hash_map* hm = hash_map_new(&hash, &cmp,&key_destruct, &value_destruct);
+
+//     pthread_t threads[5];
+
+//     int n = 5;
+//     for (int i = 0; i < 5; i++) {
+//         struct thread_arg *a = malloc(sizeof(struct thread_arg));
+//         a->hm = hm;
+//         a->start = n * i;
+//         a->n = n;
+//         pthread_create(threads+i, NULL, thread_add, a);
+//     }
+
+//     for (int i = 0; i < 5; i++) {
+//         pthread_join(threads[i], NULL);
+//     }
+
+//     for (size_t i = 0; i < hm->capacity; i++) {
+//         linkedlist *list = hm->data[i];
+//         node *cursor = list->head;
+//         for (size_t j = 0; j < list->size; j++) {
+//             printf("The key is %d, and value is %d\n", *(int*)cursor->k, *(int*)cursor->v);
+//             cursor = cursor->next;
+//         }
+//     }
+
+//     printf("%zu\n", hm->data[0]->size);
+//     printf("%zu\n", hm->size);
+
+//     hash_map_destroy(hm);
+
+//     return 1;
+// }   
+
+// int test_safe_delete() {
+//     hash_map* hm = hash_map_new(&hash, &cmp,&key_destruct, &value_destruct);
+
+//     pthread_t threads[5];
+
+//     int n = 5;
+//     for (int i = 0; i < 5; i++) {
+//         struct thread_arg *a = malloc(sizeof(struct thread_arg));
+//         a->hm = hm;
+//         a->start = n * i;
+//         a->n = n;
+//         pthread_create(threads+i, NULL, thread_add, a);
+//     }
+
+//     for (int i = 0; i < 5; i++) {
+//         pthread_join(threads[i], NULL);
+//     }
+    
+//     //Delete everything
+//     for (int i = 0; i < 5; i++) {
+//         struct thread_arg *a = malloc(sizeof(struct thread_arg));
+//         a->hm = hm;
+//         a->start = n * i;
+//         a->n = n;
+//         pthread_create(threads+i, NULL, thread_delete, a);
+//     }
+
+//     for (int i = 0; i < 5; i++) {
+//         pthread_join(threads[i], NULL);
+//     }
+
+//     assert(hm->capacity == 32);
+//     printf("%zu\n", hm->size);
+//     assert(hm->size == 0);
+
+//     // printf("%zu\n", (hm->data[0]->size)+1);
+
+//     hash_map_destroy(hm);
+
+//     return 1;
+// }
+
+
+// command_t tests[] = {
+//    {"test_safe_add", &test_safe_add},
+//    {"test_safe_delete", &test_safe_delete}
+// };
+
+// int main(int argc, char** argv) {
+//   int test_n = sizeof(tests) / sizeof(command_t);
+//   if(argc >= 2) {
+// 		for(int i = 0; i < test_n; i++) {
+// 			if(strcmp(argv[1], tests[i].str) == 0) {
+// 				if(tests[i].exe()) {
+// 				  fprintf(stdout, "%s Passed\n", tests[i].str);
+// 				} else {
+// 				  fprintf(stdout, "%s Failed\n", tests[i].str);
+// 				}
+// 			}
+// 		}
+//         if (strcmp(argv[1], "all") == 0) {
+//             for(int i = 0; i < test_n; i++) {
+// 				if(tests[i].exe()) {
+// 				  fprintf(stdout, "%s Passed\n", tests[i].str);
+// 				} else {
+// 				  fprintf(stdout, "%s Failed\n", tests[i].str);
+// 				}
+//             }
+//         }
+// 	}
+// }

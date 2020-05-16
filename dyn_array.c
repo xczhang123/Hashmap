@@ -27,8 +27,19 @@ void hash_map_rehash(hash_map *hm) {
         hm->data[i] = list_init();
     }
 
+    // for (int i = 0; i < hm->capacity; i++) {
+    //     linkedlist *list = hm->data[i];
+    //     node *cursor = list->head;
+    //     for (int j = 0; j < list->size; j++) {
+    //         printf("The key is %d, and value is %d\n", *(int*)cursor->k, *(int*)cursor->v);
+    //         cursor = cursor->next;
+    //     }
+    // }
+
+    // printf("The capacity is :%ld\n", hm->capacity);
+
     //Add all entries in temp to original hash table
-    hash_map_add_all(hm, temp);
+    hash_map_rehash_add_all(hm, temp);
     //Free temp bucket
     list_free_without_key_value(temp);
 }
@@ -46,6 +57,7 @@ hash_map* hash_map_init(size_t size, size_t (*hash)(void*), int (*cmp)(void*,voi
     hm->cmp = cmp;
     hm->key_destruct = key_destruct;
     hm->value_destruct = value_destruct;
+    pthread_mutex_init(&hm->lock, NULL);
 
     return hm;
 }
@@ -54,29 +66,46 @@ void hash_map_add(hash_map *hm, void *k, void *v) {
 
     //Load factor -> if greater than 75%, we rehash the table
     float n = 0.0f;
+    
+    pthread_mutex_lock(&hm->lock);
     size_t index = hm->hash(k) % hm->capacity;
+    pthread_mutex_unlock(&hm->lock);
 
     //Increment the size if the bucket is empty before the add
+    pthread_mutex_lock(&hm->lock);
+    pthread_mutex_lock(&hm->data[index]->lock);
     if (hm->data[index]->head == NULL) {
         hm->size++;
     }
+    pthread_mutex_unlock(&hm->data[index]->lock);
+    pthread_mutex_unlock(&hm->lock);
 
+    //Fine-grained lock applied
     list_add(hm->data[index], k, v, hm->cmp, hm->key_destruct, hm->value_destruct);
 
     //Calculate Load factor
+    pthread_mutex_lock(&hm->lock);
 	n = (1.0 * hm->size) / hm->capacity;
 	if (n >= 0.75) {
 		//rehashing
-		printf("going to rehash\n");
+		// printf("going to rehash\n");
 		hash_map_rehash(hm);
 	}
+    pthread_mutex_unlock(&hm->lock);
 }
 
-void hash_map_add_all(hash_map *hm, linkedlist* src) {
+/* Will only be called when the thread holds hm->lock (i.e. when rehashing the whole table) */
+void hash_map_rehash_add_all(hash_map *hm, linkedlist* src) {
     node *cursor = src->head;
     while (cursor != NULL) {
         node *temp = cursor->next;
-        hash_map_add(hm, cursor->k, cursor->v);
+        
+        size_t index = hm->hash(cursor->k) % hm->capacity;
+        if (hm->data[index]->head == NULL) {
+            hm->size++;
+        }
+        list_add(hm->data[index], cursor->k, cursor->v, hm->cmp, hm->key_destruct, hm->value_destruct);
+
         cursor = temp;
     }
 }
@@ -85,11 +114,16 @@ void hash_map_delete(hash_map *hm, void *k) {
 
     size_t index = hm->hash(k) % hm->capacity;
     
-    int deleted = list_delete(hm->data[index], k, hm->cmp, hm->key_destruct, hm->value_destruct);
+    pthread_mutex_lock(&hm->lock);
+    pthread_mutex_lock(&hm->data[index]->lock);
 
-    if (deleted) {
+    int deleted = list_delete(hm->data[index], k, hm->cmp, hm->key_destruct, hm->value_destruct);
+    //If the bucket is empty after the deletion
+    if (deleted && hm->data[index]->size == 0) {
         hm->size--;
     }
+    pthread_mutex_unlock(&hm->data[index]->lock);
+    pthread_mutex_unlock(&hm->lock);
 }
 
 void* hash_map_get(hash_map *hm, void *k) {
@@ -106,16 +140,28 @@ void* hash_map_get(hash_map *hm, void *k) {
     }
 }
 
-int cmp(void* k1, void* k2) {
-    int *i1 = (int*)k1;
-    int *i2 = (int*)k2;
+void hash_map_free(hash_map *hm) {
 
-    if (*i1 == *i2) {
-        return 1;
-    } else {
-        return 0;
+    for (size_t i = 0; i < hm->capacity; i++) {
+        linkedlist *list = hm->data[i];
+        list_free(list, hm->key_destruct, hm->value_destruct);
     }
+
+    free(hm->data);
+    free(hm);
 }
+
+
+// int cmp(void* k1, void* k2) {
+//     int *i1 = (int*)k1;
+//     int *i2 = (int*)k2;
+
+//     if (*i1 == *i2) {
+//         return 1;
+//     } else {
+//         return 0;
+//     }
+// }
 
 // void key_destruct(void *k) {
 //     int *i = (int*)k;
@@ -130,18 +176,6 @@ int cmp(void* k1, void* k2) {
 // size_t hash(void *k) {
 //     return ((*(int*)k) % (HASH_MAP_DEF_CAPACITY));
 // }
-
-void hash_map_free(hash_map *hm) {
-
-    for (size_t i = 0; i < hm->capacity; i++) {
-        linkedlist *list = hm->data[i];
-        list_free(list, hm->key_destruct, hm->value_destruct);
-    }
-
-    free(hm->data);
-    free(hm);
-}
-
 
 
 // typedef struct command command_t;
