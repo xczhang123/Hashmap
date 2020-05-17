@@ -4,9 +4,14 @@ void hash_map_rehash(hash_map *hm) {
 
     //Resize old hash table hm
     hm->capacity *= 2;
-    // hm->size = 0;
-    // printf("the size is before %ld\n", hm->data[0]->size);
+
+    for (size_t i = 0; i < hm->capacity/2; i++) {
+        pthread_mutex_lock(&hm->data[i]->lock);
+    }
     hm->data = realloc(hm->data, sizeof(*hm->data)*(hm->capacity));
+    for (size_t i = 0; i < hm->capacity/2; i++) {
+        pthread_mutex_unlock(&hm->data[i]->lock);
+    }
 
     // Initialize newly created buckets
     for (size_t i = hm->capacity/2; i < hm->capacity; i++) {
@@ -17,45 +22,9 @@ void hash_map_rehash(hash_map *hm) {
     for (size_t i = 0; i < hm->capacity/2; i++) {
         linkedlist *list = hm->data[i];
         // pthread_mutex_lock(&list->lock);
-        // printf("Before deletion, my size is %ld\n", hm->size);
         hash_map_rehash_add_all(hm, list);
-        // printf("After deletion, my size is %ld\n", hm->size);
         // pthread_mutex_unlock(&list->lock);
     }
-
-    //  printf("After deletionnn, my size is %ld\n", hm->size);
-
-
-    //Create temporary bucket list
-    // linkedlist *temp = list_init();
-
-    // //Add all entries to temp bucket list
-    // for (size_t i = 0; i < hm->capacity; i++) {
-    //     linkedlist *list = hm->data[i];
-    //     list_add_all(temp, list, hm->cmp, hm->key_destruct, hm->value_destruct);
-    // }
-
-    // //Resize old hash table hm
-    // hm->capacity *= 2;
-    // hm->size = 0;
-    // hm->data = realloc(hm->data, sizeof(*hm->data)*(hm->capacity));
-    // // Free old linkedlists and reinitializing
-    // for (size_t i = 0; i < hm->capacity/2; i++) {
-    //     linkedlist *list = hm->data[i];
-    //     if (list->head != NULL) {
-    //         list_free_without_key_value(list);
-    //         hm->data[i] = list_init();
-    //     }
-    // }
-    // // Initialize newly created buckets
-    // for (size_t i = hm->capacity/2; i < hm->capacity; i++) {
-    //     hm->data[i] = list_init();
-    // }
-
-    // //Add all entries in temp to original hash table
-    // hash_map_rehash_add_all(hm, temp);
-    // //Free temp bucket
-    // list_free_without_key_value(temp);
 }
 
 
@@ -95,18 +64,6 @@ void hash_map_rehash_add_all(hash_map *hm, linkedlist* src) {
         } 
         curr = next;
     }
-    //  node *cursor = src->head;
-    // while (cursor != NULL) {
-    //     node *temp = cursor->next;
-        
-    //     size_t index = hm->hash(cursor->k) % hm->capacity;
-    //     if (hm->data[index]->head == NULL) {
-    //         hm->size++;
-    //     }
-    //     list_add(hm->data[index], cursor->k, cursor->v, hm->cmp, hm->key_destruct, hm->value_destruct);
-
-    //     cursor = temp;
-    // }
 
 }
 
@@ -135,13 +92,13 @@ void hash_map_add(hash_map *hm, void *k, void *v) {
 
     pthread_mutex_lock(&hm->lock);
     size_t index = hm->hash(k) % hm->capacity;
-    // pthread_mutex_unlock(&hm->lock);
+    pthread_mutex_unlock(&hm->lock);
 
     //Increment the size if the bucket is empty before the add
     if (hm->data[index]->head == NULL) {
-        // pthread_mutex_lock(&hm->lock);
+        pthread_mutex_lock(&hm->lock);
         hm->size++;
-        // pthread_mutex_unlock(&hm->lock);
+        pthread_mutex_unlock(&hm->lock);
     }
 
     pthread_mutex_lock(&hm->data[index]->lock); 
@@ -149,19 +106,11 @@ void hash_map_add(hash_map *hm, void *k, void *v) {
     pthread_mutex_unlock(&hm->data[index]->lock);
 
     //Calculate Load factor
-    // pthread_mutex_lock(&hm->lock);
+    pthread_mutex_lock(&hm->lock);
 	n = (1.0 * hm->size) / hm->capacity;
 	if (n >= 0.75) {
 		//rehashing
-        // for (int i = 0; i < hm->capacity; i++) {
-        //     pthread_mutex_lock(&hm->data[i]->lock);
-        //     printf("LOCK!: %p\n",&hm->data[i]->lock);
-        // }
 		hash_map_rehash(hm);
-        // for (int i = 0; i < hm->capacity/2; i++) {
-        //     pthread_mutex_unlock(&hm->data[i]->lock);
-        //     printf("UNLOCK!: %p\n",&hm->data[i]->lock);
-        // }
 	}
     pthread_mutex_unlock(&hm->lock);
 }
@@ -170,7 +119,7 @@ void hash_map_delete(hash_map *hm, void *k) {
 
     pthread_mutex_lock(&hm->lock);
     size_t index = hm->hash(k) % hm->capacity;
-    // pthread_mutex_unlock(&hm->lock);
+    pthread_mutex_unlock(&hm->lock);
 
     pthread_mutex_lock(&hm->data[index]->lock); 
     int deleted = list_delete(hm->data[index], k, hm->cmp, hm->key_destruct, hm->value_destruct);
@@ -179,26 +128,24 @@ void hash_map_delete(hash_map *hm, void *k) {
 
     //If the bucket is empty after the deletion
     if (deleted && new_size == 0) {
-        // pthread_mutex_lock(&hm->lock);
+        pthread_mutex_lock(&hm->lock);
         hm->size--;
-        // printf("hm size: %ld\n", hm->size);
-        // pthread_mutex_unlock(&hm->lock);
+        pthread_mutex_unlock(&hm->lock);
     }
-    pthread_mutex_unlock(&hm->lock);
+    // pthread_mutex_unlock(&hm->lock);
 }
 
 void* hash_map_get(hash_map *hm, void *k) {
     
     pthread_mutex_lock(&hm->lock);
     size_t index = hm->hash(k) % hm->capacity;
-    // pthread_mutex_unlock(&hm->lock);
+    pthread_mutex_unlock(&hm->lock);
 
     pthread_mutex_lock(&hm->data[index]->lock);
     void *n = list_get(hm->data[index], k, hm->cmp);
     // printf("try lock: %d\n", pthread_mutex_trylock(&hm->data[index]->lock));
     pthread_mutex_unlock(&hm->data[index]->lock);
-    pthread_mutex_unlock(&hm->lock);
-
+   
     //If key is found, return the value; otherwise, return NULL
     if (n != NULL) {
         return n;

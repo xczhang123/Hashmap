@@ -228,10 +228,10 @@ int test_safe_get() {
 int test_safe_complex() {
     hash_map* hm = hash_map_new(&hash, &cmp,&key_destruct, &value_destruct);
 
-    pthread_t threads[500];
+    pthread_t threads[10];
 
     int n = 5;
-    for (int i = 0; i < 500; i++) {
+    for (int i = 0; i < 10; i++) {
         struct thread_arg *a = malloc(sizeof(struct thread_arg));
         struct thread_arg *b = malloc(sizeof(struct thread_arg));
         struct thread_arg *c = malloc(sizeof(struct thread_arg));
@@ -263,7 +263,7 @@ int test_safe_complex() {
         }
     }
 
-    for (int i = 0; i < 500; i++) {
+    for (int i = 0; i < 10; i++) {
         pthread_join(threads[i], NULL);
     }
 
