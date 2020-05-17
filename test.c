@@ -29,7 +29,7 @@ int cmp(void* k1, void* k2) {
 }
 
 size_t hash(void *k) {
-    int n = ((*(int*)k + 312));
+    int n = ((*(int*)k) * (311));
     // printf("What is n: %d\n", n);
     return n;
 }
@@ -124,9 +124,9 @@ int test_safe_add() {
     // }
 
     // printf("%zu\n", hm->data[0]->size);
-    // printf("%zu\n", hm->size);
+    printf("%zu\n", hm->size);
 
-    // assert(hm->data[0]->size == 1);
+    assert(hm->size == 25);
 
     hash_map_destroy(hm);
 
@@ -136,10 +136,10 @@ int test_safe_add() {
 int test_safe_delete() {
     hash_map* hm = hash_map_new(&hash, &cmp,&key_destruct, &value_destruct);
 
-    pthread_t threads[2];
+    pthread_t threads[5];
 
     int n = 5;
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 5; i++) {
         struct thread_arg *a = malloc(sizeof(struct thread_arg));
         a->hm = hm;
         a->start = n * i;
@@ -147,12 +147,12 @@ int test_safe_delete() {
         pthread_create(threads+i, NULL, thread_add, a);
     }
 
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 5; i++) {
         pthread_join(threads[i], NULL);
     }
     
     //Delete everything
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 5; i++) {
         struct thread_arg *a = malloc(sizeof(struct thread_arg));
         a->hm = hm;
         a->start = n * i;
@@ -160,12 +160,12 @@ int test_safe_delete() {
         pthread_create(threads+i, NULL, thread_delete, a);
     }
 
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 5; i++) {
         pthread_join(threads[i], NULL);
     }
 
     // assert(hm->capacity == 32);
-    // printf("%zu\n", hm->size);
+    printf("%zu\n", hm->size);
     assert(hm->size == 0);
 
     hash_map_destroy(hm);
@@ -212,12 +212,12 @@ int test_safe_get() {
         }
     }
 
-    for (int i = 0; i < 20; i++) {
+    for (int i = 0; i < 10; i++) {
         pthread_join(threads[i], NULL);
     }
 
     // assert(hm->capacity == 32);
-    // printf("%zu\n", hm->size);
+    printf("%zu\n", hm->size);
     assert(hm->size == 0);
 
     hash_map_destroy(hm);
@@ -228,10 +228,10 @@ int test_safe_get() {
 int test_safe_complex() {
     hash_map* hm = hash_map_new(&hash, &cmp,&key_destruct, &value_destruct);
 
-    pthread_t threads[10];
+    pthread_t threads[500];
 
     int n = 5;
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 500; i++) {
         struct thread_arg *a = malloc(sizeof(struct thread_arg));
         struct thread_arg *b = malloc(sizeof(struct thread_arg));
         struct thread_arg *c = malloc(sizeof(struct thread_arg));
@@ -263,7 +263,7 @@ int test_safe_complex() {
         }
     }
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 500; i++) {
         pthread_join(threads[i], NULL);
     }
 
