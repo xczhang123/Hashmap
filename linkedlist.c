@@ -18,7 +18,7 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
            list->head->k = k;
            list->head->v = v;
            list->head->next = NULL;
-           pthread_mutex_init(&list->head->lock, NULL);
+        //    pthread_mutex_init(&list->head->lock, NULL);
         //    pthread_mutex_unlock(&list->lock);
         } else {
             // pthread_mutex_unlock(&list->lock);
@@ -44,7 +44,7 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
             n->k = k;
             n->v = v;
             n->next = NULL;
-            pthread_mutex_init(&n->lock, NULL);
+            // pthread_mutex_init(&n->lock, NULL);
 
             // pthread_mutex_lock(&n->lock);
             if (prev->next == NULL) {

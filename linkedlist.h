@@ -14,7 +14,7 @@ typedef struct linkedlist {
 } linkedlist;
 
 typedef struct node {
-    pthread_mutex_t lock;
+    // pthread_mutex_t lock;
     void *k;
     void *v;
     struct node *next;
