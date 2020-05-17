@@ -2,38 +2,24 @@
 
 void hash_map_rehash(hash_map *hm) {
 
-    pthread_mutex_lock(&hm->lock);
-    // for (size_t i = 0; i < hm->capacity; i++) {
-    //     printf("lock is %p!\n", &hm->data[i]->lock);
-    //     pthread_mutex_lock(&hm->data[i]->lock);
-    // }
-
-    // Resize old hash table hm
-    // printf("data %p is here before\n", hm->data);
+    //Resize old hash table hm
     hm->capacity *= 2;
-    hm->data = realloc(hm->data, sizeof(*hm->data)*(hm->capacity));
 
-    // printf("data %p is here\n", hm->data);
+    pthread_mutex_lock(&hm->get_lock);
+    hm->data = realloc(hm->data, sizeof(*hm->data)*(hm->capacity));
+    pthread_mutex_unlock(&hm->get_lock);
+
     // Initialize newly created buckets
     for (size_t i = hm->capacity/2; i < hm->capacity; i++) {
         hm->data[i] = list_init();
     }
 
-    pthread_mutex_unlock(&hm->lock);
-    // for (size_t i = 0; i < hm->capacity/2; i++) {
-    //     printf("unlock is %p!\n", &hm->data[i]->lock);
-    //     pthread_mutex_unlock(&hm->data[i]->lock);
-    // }
-
     // Free old linkedlists and reinitializing
     for (size_t i = 0; i < hm->capacity/2; i++) {
-        // pthread_mutex_lock(&hm->lock);
         linkedlist *list = hm->data[i];
-        // pthread_mutex_unlock(&hm->lock);
-        // printf("List lock: %p\n", &list->lock);
-        pthread_mutex_lock(&list->lock);
+        // pthread_mutex_lock(&list->lock);
         hash_map_rehash_add_all(hm, list);
-        pthread_mutex_unlock(&list->lock);
+        // pthread_mutex_unlock(&list->lock);
     }
 }
 
@@ -91,6 +77,7 @@ hash_map* hash_map_init(size_t size, size_t (*hash)(void*), int (*cmp)(void*,voi
     hm->key_destruct = key_destruct;
     hm->value_destruct = value_destruct;
     pthread_mutex_init(&hm->lock, NULL);
+    pthread_mutex_init(&hm->get_lock, NULL);
 
     return hm;
 }
@@ -118,11 +105,11 @@ void hash_map_add(hash_map *hm, void *k, void *v) {
     //Calculate Load factor
     pthread_mutex_lock(&hm->lock);
 	n = (1.0 * hm->size) / hm->capacity;
-    pthread_mutex_unlock(&hm->lock);
 	if (n >= 0.75) {
 		//rehashing
 		hash_map_rehash(hm);
 	}
+    pthread_mutex_unlock(&hm->lock);
 }
 
 void hash_map_delete(hash_map *hm, void *k) {
@@ -151,10 +138,12 @@ void* hash_map_get(hash_map *hm, void *k) {
     size_t index = hm->hash(k) % hm->capacity;
     pthread_mutex_unlock(&hm->lock);
 
+    pthread_mutex_lock(&hm->get_lock);
     pthread_mutex_lock(&hm->data[index]->lock);
     void *n = list_get(hm->data[index], k, hm->cmp);
     // printf("try lock: %d\n", pthread_mutex_trylock(&hm->data[index]->lock));
     pthread_mutex_unlock(&hm->data[index]->lock);
+    pthread_mutex_unlock(&hm->get_lock);
    
     //If key is found, return the value; otherwise, return NULL
     if (n != NULL) {
