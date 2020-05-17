@@ -96,6 +96,8 @@ void* list_get(linkedlist *list, void *k, int (*cmp)(void*,void*)) {
 
 /* Return 1 when key is found, 0 otherwise */
 int list_delete(linkedlist *list, void *k, int (*cmp)(void*,void*), void (*key_destruct)(void*), void (*value_destruct)(void*)) {
+    
+    // pthread_mutex_lock(&list->lock);
     node *curr = list->head;
     node *prev = NULL;
 
@@ -113,6 +115,8 @@ int list_delete(linkedlist *list, void *k, int (*cmp)(void*,void*), void (*key_d
             value_destruct(curr->v);
             free(curr);
             list->size--;
+
+            // pthread_mutex_unlock(&list->lock);
             
             return 1;
         } else { //Keep searching
@@ -121,6 +125,7 @@ int list_delete(linkedlist *list, void *k, int (*cmp)(void*,void*), void (*key_d
         }
     }
 
+    // pthread_mutex_unlock(&list->lock);
     return 0;
 }
 
