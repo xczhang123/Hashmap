@@ -37,6 +37,4 @@ void* hash_map_get(hash_map *hm, void *k);
 
 void hash_map_free(hash_map *hm);
 
-
-
 #endif
