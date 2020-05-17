@@ -2,28 +2,38 @@
 
 void hash_map_rehash(hash_map *hm) {
 
-    //Resize old hash table hm
+    pthread_mutex_lock(&hm->lock);
+    // for (size_t i = 0; i < hm->capacity; i++) {
+    //     printf("lock is %p!\n", &hm->data[i]->lock);
+    //     pthread_mutex_lock(&hm->data[i]->lock);
+    // }
+
+    // Resize old hash table hm
+    // printf("data %p is here before\n", hm->data);
     hm->capacity *= 2;
-
-    for (size_t i = 0; i < hm->capacity/2; i++) {
-        pthread_mutex_lock(&hm->data[i]->lock);
-    }
     hm->data = realloc(hm->data, sizeof(*hm->data)*(hm->capacity));
-    for (size_t i = 0; i < hm->capacity/2; i++) {
-        pthread_mutex_unlock(&hm->data[i]->lock);
-    }
 
+    // printf("data %p is here\n", hm->data);
     // Initialize newly created buckets
     for (size_t i = hm->capacity/2; i < hm->capacity; i++) {
         hm->data[i] = list_init();
     }
 
+    pthread_mutex_unlock(&hm->lock);
+    // for (size_t i = 0; i < hm->capacity/2; i++) {
+    //     printf("unlock is %p!\n", &hm->data[i]->lock);
+    //     pthread_mutex_unlock(&hm->data[i]->lock);
+    // }
+
     // Free old linkedlists and reinitializing
     for (size_t i = 0; i < hm->capacity/2; i++) {
+        // pthread_mutex_lock(&hm->lock);
         linkedlist *list = hm->data[i];
-        // pthread_mutex_lock(&list->lock);
+        // pthread_mutex_unlock(&hm->lock);
+        // printf("List lock: %p\n", &list->lock);
+        pthread_mutex_lock(&list->lock);
         hash_map_rehash_add_all(hm, list);
-        // pthread_mutex_unlock(&list->lock);
+        pthread_mutex_unlock(&list->lock);
     }
 }
 
@@ -108,11 +118,11 @@ void hash_map_add(hash_map *hm, void *k, void *v) {
     //Calculate Load factor
     pthread_mutex_lock(&hm->lock);
 	n = (1.0 * hm->size) / hm->capacity;
+    pthread_mutex_unlock(&hm->lock);
 	if (n >= 0.75) {
 		//rehashing
 		hash_map_rehash(hm);
 	}
-    pthread_mutex_unlock(&hm->lock);
 }
 
 void hash_map_delete(hash_map *hm, void *k) {
