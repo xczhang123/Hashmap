@@ -56,6 +56,7 @@ void list_add_all(linkedlist *target, linkedlist *src, int (*cmp)(void*,void*),
 }
 
 int find_key(node *n, void *k, int (*cmp)(void*,void*)) {
+    printf("The k is :%p\n", k);
     if (cmp(n->k, k) == 1) {
         return 1;
     } else {
