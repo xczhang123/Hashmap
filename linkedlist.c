@@ -4,7 +4,6 @@ linkedlist* list_init() {
     linkedlist *list = (linkedlist*)malloc(sizeof(linkedlist));
     list->head = NULL;
     list->size = 0;
-    pthread_mutex_init(&list->lock, NULL);
 
     return list;
 }
