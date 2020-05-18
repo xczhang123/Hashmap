@@ -8,7 +8,7 @@
 #include <assert.h>
 
 typedef struct linkedlist {
-    pthread_mutex_t lock;
+    // pthread_mutex_t lock;
     struct node *head;
     size_t size;
 } linkedlist;
