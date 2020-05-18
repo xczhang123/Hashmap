@@ -26,7 +26,7 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
                     value_destruct(cursor->v);
                     cursor->k = k;
                     cursor->v = v;
-                    return;
+                    // return;
                 }
                 prev = cursor;
                 cursor = cursor->next;
@@ -37,9 +37,7 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
             n->v = v;
             n->next = NULL;
 
-            // if (prev->next == NULL) {
             prev->next = n;
-            // }
         }
         
         list->size++;
@@ -64,6 +62,10 @@ int find_key(node *n, void *k, int (*cmp)(void*,void*)) {
 }
 
 void* list_get(linkedlist *list, void *k, int (*cmp)(void*,void*)) {
+    if (list == NULL) {
+        return NULL;
+    }
+    // printf("%p\n", list->head);
     node *cursor = list->head;
     while (cursor != NULL) {
         if (find_key(cursor, k, cmp) == 1) {

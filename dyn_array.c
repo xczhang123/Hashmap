@@ -1,52 +1,55 @@
 #include "dyn_array.h"
 
 void hash_map_rehash(hash_map *hm) {
-    //Create temporary bucket list
-    linkedlist *temp = list_init();
-
-    //Add all entries to temp bucket list
-    for (size_t i = 0; i < hm->capacity; i++) {
-        linkedlist *list = hm->data[i];
-        list_add_all(temp, list, hm->cmp, hm->key_destruct, hm->value_destruct);
-    }
 
     //Resize old hash table hm
     hm->capacity *= 2;
-    hm->size = 0;
+
     hm->data = realloc(hm->data, sizeof(*hm->data)*(hm->capacity));
-    // Free old linkedlists and reinitializing
-    for (size_t i = 0; i < hm->capacity/2; i++) {
-        linkedlist *list = hm->data[i];
-        if (list->head != NULL) {
-            list_free_without_key_value(list);
-            hm->data[i] = list_init();
-        }
-    }
+
     // Initialize newly created buckets
     for (size_t i = hm->capacity/2; i < hm->capacity; i++) {
         hm->data[i] = list_init();
     }
 
-    //Add all entries in temp to original hash table
-    hash_map_rehash_add_all(hm, temp);
-    //Free temp bucket
-    list_free_without_key_value(temp);
+    // Free old linkedlists and reinitializing
+    for (size_t i = 0; i < hm->capacity/2; i++) {
+        linkedlist *list = hm->data[i];
+        hash_map_rehash_add_all(hm, list);
+    }
 }
+
 
 /* Will only be called when the thread holds hm->lock (i.e. when rehashing the whole table) */
 void hash_map_rehash_add_all(hash_map *hm, linkedlist* src) {
-    node *cursor = src->head;
-    while (cursor != NULL) {
-        node *temp = cursor->next;
-        
-        size_t index = hm->hash(cursor->k) % hm->capacity;
-        if (hm->data[index]->head == NULL) {
-            hm->size++;
-        }
-        list_add(hm->data[index], cursor->k, cursor->v, hm->cmp, hm->key_destruct, hm->value_destruct);
 
-        cursor = temp;
+    node *curr = src->head;
+
+    while (curr != NULL) {
+        node *next = curr->next;
+
+        size_t old_index = hm->hash(curr->k) % (hm->capacity/2);
+        size_t new_index = hm->hash(curr->k) % hm->capacity;
+
+        if (old_index != new_index) {
+
+            src->head = curr->next; //Change the head pointer
+            
+            if (hm->data[new_index]->size == 0) {
+                hm->size++;
+            }
+            list_add(hm->data[new_index], curr->k, curr->v, hm->cmp, hm->key_destruct, hm->value_destruct);
+            
+            free(curr);
+            hm->data[old_index]->size--;
+
+            if (hm->data[old_index]->size == 0) {
+                hm->size--;
+            }
+        } 
+        curr = next;
     }
+
 }
 
 hash_map* hash_map_init(size_t size, size_t (*hash)(void*), int (*cmp)(void*,void*),

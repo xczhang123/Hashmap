@@ -54,7 +54,7 @@ void* thread_add(void* arg) {
         int *v = malloc(sizeof(int));
         // memcpy(v, &i, sizeof(int));
         memcpy(v, &a->start, sizeof(int));
-        hash_map_add(a->hm, k, v);
+        hash_map_put_entry_move(a->hm, k, v);
         a->start++;
 
         // printf("The key is %d and the value is %d\n", *(int*)k, *(int*)v);
@@ -228,10 +228,10 @@ int test_safe_get() {
 int test_safe_complex() {
     hash_map* hm = hash_map_new(&hash, &cmp,&key_destruct, &value_destruct);
 
-    pthread_t threads[100];
+    pthread_t threads[1000];
 
     int n = 10;
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 999;) {
         struct thread_arg *a = malloc(sizeof(struct thread_arg));
         struct thread_arg *b = malloc(sizeof(struct thread_arg));
         struct thread_arg *c = malloc(sizeof(struct thread_arg));
@@ -250,20 +250,29 @@ int test_safe_complex() {
         int n = rand() % 3;
         if (n == 0) {
             pthread_create(threads+i, NULL, thread_add, a);
+            i++;
             pthread_create(threads+i, NULL, thread_delete, b);
+            i++;
             pthread_create(threads+i, NULL, thread_get, c);
+             i++;
         } else if (n == 1) {
             pthread_create(threads+i, NULL, thread_delete, b);
+            i++;
             pthread_create(threads+i, NULL, thread_add, a);
+            i++;
             pthread_create(threads+i, NULL, thread_get, c);
+             i++;
         } else {
             pthread_create(threads+i, NULL, thread_get, c);
+            i++;
             pthread_create(threads+i, NULL, thread_delete, b);
+            i++;
             pthread_create(threads+i, NULL, thread_add, a);
+            i++;
         }
     }
 
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 999; i++) {
         pthread_join(threads[i], NULL);
     }
 
