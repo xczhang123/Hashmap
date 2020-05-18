@@ -4,6 +4,7 @@ linkedlist* list_init() {
     linkedlist *list = (linkedlist*)malloc(sizeof(linkedlist));
     list->head = NULL;
     list->size = 0;
+    pthread_mutex_init(&list->lock, NULL);
 
     return list;
 }
@@ -11,23 +12,30 @@ linkedlist* list_init() {
 void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*), 
                 void (*key_destruct)(void*), void (*value_destruct)(void*)) {
     if (list != NULL) {
+        // pthread_mutex_lock(&list->lock);
         if (list->head == NULL) {
            list->head = (node*)malloc(sizeof(node));
            list->head->k = k;
            list->head->v = v;
            list->head->next = NULL;
+        //    pthread_mutex_init(&list->head->lock, NULL);
+        //    pthread_mutex_unlock(&list->lock);
         } else {
+            // pthread_mutex_unlock(&list->lock);
             node* cursor = list->head;
             node* prev = NULL;
             while (cursor != NULL) {
                 // If k already exists
+                // pthread_mutex_lock(&cursor->lock);
                 if (find_key(cursor, k, cmp) == 1) {
                     key_destruct(cursor->k);
                     value_destruct(cursor->v);
                     cursor->k = k;
                     cursor->v = v;
-                    // return;
+                    // pthread_mutex_unlock(&cursor->lock);
+                    return;
                 }
+                // pthread_mutex_unlock(&cursor->lock);
                 prev = cursor;
                 cursor = cursor->next;
             }
@@ -36,11 +44,23 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
             n->k = k;
             n->v = v;
             n->next = NULL;
+            // pthread_mutex_init(&n->lock, NULL);
 
-            prev->next = n;
+            // pthread_mutex_lock(&n->lock);
+            if (prev->next == NULL) {
+                prev->next = n;
+            } else {
+                while(prev->next != NULL) {
+                    prev = prev->next;
+                }
+                prev->next = n;
+            }
+            // pthread_mutex_unlock(&n->lock);
         }
         
+        // pthread_mutex_lock(&list->lock);
         list->size++;
+        // pthread_mutex_unlock(&list->lock);
     }
 }
 
@@ -62,10 +82,6 @@ int find_key(node *n, void *k, int (*cmp)(void*,void*)) {
 }
 
 void* list_get(linkedlist *list, void *k, int (*cmp)(void*,void*)) {
-    if (list == NULL) {
-        return NULL;
-    }
-    // printf("%p\n", list->head);
     node *cursor = list->head;
     while (cursor != NULL) {
         if (find_key(cursor, k, cmp) == 1) {

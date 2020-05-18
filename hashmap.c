@@ -11,21 +11,15 @@ struct hash_map* hash_map_new(size_t (*hash)(void*), int (*cmp)(void*,void*),
 }
 
 void hash_map_put_entry_move(struct hash_map* map, void* k, void* v) {
-    pthread_mutex_lock(&map->lock);
 	hash_map_add(map, k, v);
-    pthread_mutex_unlock(&map->lock);
 }
 
 void hash_map_remove_entry(struct hash_map* map, void* k) {
-    pthread_mutex_lock(&map->lock);
 	hash_map_delete(map, k);
-    pthread_mutex_unlock(&map->lock);
 }
 
 void* hash_map_get_value_ref(struct hash_map* map, void* k) {
-    pthread_mutex_lock(&map->lock);
     void *v = hash_map_get(map, k);
-    pthread_mutex_unlock(&map->lock);
 
     if (v == NULL) {
         return NULL;
@@ -35,7 +29,5 @@ void* hash_map_get_value_ref(struct hash_map* map, void* k) {
 }
 
 void hash_map_destroy(struct hash_map* map) {
-    pthread_mutex_lock(&map->lock);
 	hash_map_free(map);
-    pthread_mutex_unlock(&map->lock);
 }
