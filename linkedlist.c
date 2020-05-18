@@ -10,31 +10,25 @@ linkedlist* list_init() {
 
 void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*), 
                 void (*key_destruct)(void*), void (*value_destruct)(void*)) {
+    (void)key_destruct;
     if (list != NULL) {
-        // pthread_mutex_lock(&list->lock);
         if (list->head == NULL) {
            list->head = (node*)malloc(sizeof(node));
            list->head->k = k;
            list->head->v = v;
            list->head->next = NULL;
-        //    pthread_mutex_init(&list->head->lock, NULL);
-        //    pthread_mutex_unlock(&list->lock);
         } else {
-            // pthread_mutex_unlock(&list->lock);
             node* cursor = list->head;
             node* prev = NULL;
             while (cursor != NULL) {
                 // If k already exists
-                // pthread_mutex_lock(&cursor->lock);
                 if (find_key(cursor, k, cmp) == 1) {
-                    key_destruct(cursor->k);
+                    // key_destruct(cursor->k);
                     value_destruct(cursor->v);
-                    cursor->k = k;
+                    // cursor->k = k;
                     cursor->v = v;
-                    // pthread_mutex_unlock(&cursor->lock);
                     return;
                 }
-                // pthread_mutex_unlock(&cursor->lock);
                 prev = cursor;
                 cursor = cursor->next;
             }
@@ -43,23 +37,13 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
             n->k = k;
             n->v = v;
             n->next = NULL;
-            // pthread_mutex_init(&n->lock, NULL);
 
-            // pthread_mutex_lock(&n->lock);
             if (prev->next == NULL) {
                 prev->next = n;
-            } else {
-                while(prev->next != NULL) {
-                    prev = prev->next;
-                }
-                prev->next = n;
             }
-            // pthread_mutex_unlock(&n->lock);
         }
         
-        // pthread_mutex_lock(&list->lock);
         list->size++;
-        // pthread_mutex_unlock(&list->lock);
     }
 }
 
