@@ -96,9 +96,9 @@ void hash_map_add(hash_map *hm, void *k, void *v) {
         // pthread_mutex_unlock(&hm->lock);
     }
 
-    pthread_mutex_lock(&hm->data[index]->lock); 
+    // pthread_mutex_lock(&hm->data[index]->lock); 
     list_add(hm->data[index], k, v, hm->cmp, hm->key_destruct, hm->value_destruct);
-    pthread_mutex_unlock(&hm->data[index]->lock);
+    // pthread_mutex_unlock(&hm->data[index]->lock);
 
     //Calculate Load factor
     // pthread_mutex_lock(&hm->lock);
@@ -116,10 +116,10 @@ void hash_map_delete(hash_map *hm, void *k) {
     size_t index = hm->hash(k) % hm->capacity;
     // pthread_mutex_unlock(&hm->lock);
 
-    pthread_mutex_lock(&hm->data[index]->lock); 
+    // pthread_mutex_lock(&hm->data[index]->lock); 
     int deleted = list_delete(hm->data[index], k, hm->cmp, hm->key_destruct, hm->value_destruct);
     int new_size = hm->data[index]->size;
-    pthread_mutex_unlock(&hm->data[index]->lock); 
+    // pthread_mutex_unlock(&hm->data[index]->lock); 
 
     //If the bucket is empty after the deletion
     if (deleted && new_size == 0) {
@@ -136,12 +136,12 @@ void* hash_map_get(hash_map *hm, void *k) {
     size_t index = hm->hash(k) % hm->capacity;
     // pthread_mutex_unlock(&hm->lock);
 
-    pthread_mutex_lock(&hm->get_lock);
-    pthread_mutex_lock(&hm->data[index]->lock);
+    // pthread_mutex_lock(&hm->get_lock);
+    // pthread_mutex_lock(&hm->data[index]->lock);
     void *n = list_get(hm->data[index], k, hm->cmp);
     // printf("try lock: %d\n", pthread_mutex_trylock(&hm->data[index]->lock));
-    pthread_mutex_unlock(&hm->data[index]->lock);
-    pthread_mutex_unlock(&hm->get_lock);
+    // pthread_mutex_unlock(&hm->data[index]->lock);
+    // pthread_mutex_unlock(&hm->get_lock);
    
     //If key is found, return the value; otherwise, return NULL
     if (n != NULL) {
