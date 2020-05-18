@@ -7,9 +7,9 @@ void hash_map_rehash(hash_map *hm) {
     //Add all entries to temp bucket list
     for (size_t i = 0; i < hm->capacity; i++) {
         linkedlist *list = hm->data[i];
-        pthread_mutex_lock(&list->lock);
+        // pthread_mutex_lock(&list->lock);
         list_add_all(temp, list, hm->cmp, hm->key_destruct, hm->value_destruct);
-        pthread_mutex_unlock(&list->lock);
+        // pthread_mutex_unlock(&list->lock);
     }
 
     //Resize old hash table hm
@@ -19,12 +19,12 @@ void hash_map_rehash(hash_map *hm) {
     // Free old linkedlists and reinitializing
     for (size_t i = 0; i < hm->capacity/2; i++) {
         linkedlist *list = hm->data[i];
-        pthread_mutex_lock(&list->lock);
+        // pthread_mutex_lock(&list->lock);
         if (list->head != NULL) {
             list_free_without_key_value(list);
             hm->data[i] = list_init();
         }
-        pthread_mutex_unlock(&list->lock);
+        // pthread_mutex_unlock(&list->lock);
     }
     // Initialize newly created buckets
     for (size_t i = hm->capacity/2; i < hm->capacity; i++) {
