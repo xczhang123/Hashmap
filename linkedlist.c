@@ -47,14 +47,7 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
             // pthread_mutex_init(&n->lock, NULL);
 
             // pthread_mutex_lock(&n->lock);
-            if (prev->next == NULL) {
-                prev->next = n;
-            } else {
-                while(prev->next != NULL) {
-                    prev = prev->next;
-                }
-                prev->next = n;
-            }
+            prev->next = n;
             // pthread_mutex_unlock(&n->lock);
         }
         
