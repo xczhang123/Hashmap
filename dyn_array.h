@@ -18,7 +18,7 @@ typedef struct hash_map {
     void (*key_destruct)(void*);
     void (*value_destruct)(void*);
     pthread_mutex_t lock;
-    pthread_mutex_t get_lock;
+    // pthread_mutex_t get_lock;
     // pthread_cond_t rehash;
 } hash_map;
 

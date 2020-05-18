@@ -48,14 +48,14 @@ void hash_map_rehash_add_all(hash_map *hm, linkedlist* src) {
         
         size_t index = hm->hash(cursor->k) % hm->capacity;
 
-        pthread_mutex_lock(&hm->data[index]->lock);
+        // pthread_mutex_lock(&hm->data[index]->lock);
         if (hm->data[index]->head == NULL) {
             // pthread_mutex_lock(&hm->lock);
             hm->size++;
             // pthread_mutex_unlock(&hm->lock);
         }
         list_add(hm->data[index], cursor->k, cursor->v, hm->cmp, hm->key_destruct, hm->value_destruct);
-        pthread_mutex_unlock(&hm->data[index]->lock);
+        // pthread_mutex_unlock(&hm->data[index]->lock);
 
         cursor = temp;
     }
@@ -75,7 +75,7 @@ hash_map* hash_map_init(size_t size, size_t (*hash)(void*), int (*cmp)(void*,voi
     hm->key_destruct = key_destruct;
     hm->value_destruct = value_destruct;
     pthread_mutex_init(&hm->lock, NULL);
-    pthread_mutex_init(&hm->get_lock, NULL);
+    // pthread_mutex_init(&hm->get_lock, NULL);
 
     return hm;
 }
