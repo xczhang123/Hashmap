@@ -10,7 +10,6 @@ linkedlist* list_init() {
 
 void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*), 
                 void (*key_destruct)(void*), void (*value_destruct)(void*)) {
-    (void)key_destruct;
     if (list != NULL) {
         if (list->head == NULL) {
            list->head = (node*)malloc(sizeof(node));
@@ -23,9 +22,9 @@ void list_add(linkedlist *list, void *k, void *v,  int (*cmp)(void*,void*),
             while (cursor != NULL) {
                 // If k already exists
                 if (find_key(cursor, k, cmp) == 1) {
-                    // key_destruct(cursor->k);
+                    key_destruct(cursor->k);
                     value_destruct(cursor->v);
-                    // cursor->k = k;
+                    cursor->k = k;
                     cursor->v = v;
                     return;
                 }
