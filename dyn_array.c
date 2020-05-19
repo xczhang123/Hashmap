@@ -32,6 +32,8 @@ void hash_map_rehash(hash_map *hm) {
         pthread_mutex_unlock(&list->lock);
     }
 
+    // printf("Size of the temp %ld\n", temp->size);
+
     //Resize old hash table hm
     pthread_mutex_lock(&hm->lock);
     hm->capacity *= 2;
