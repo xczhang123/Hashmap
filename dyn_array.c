@@ -38,7 +38,9 @@ void hash_map_rehash(hash_map *hm) {
     pthread_mutex_lock(&hm->lock);
     hm->capacity *= 2;
     hm->size = 0;
+    // pthread_mutex_lock(&hm->resize_lock);
     hm->data = realloc(hm->data, sizeof(*hm->data)*(hm->capacity));
+    // pthread_mutex_unlock(&hm->resize_lock);
     pthread_mutex_unlock(&hm->lock);
     // Initialize newly created buckets
     for (size_t i = hm->capacity/2; i < hm->capacity; i++) {
@@ -95,7 +97,7 @@ hash_map* hash_map_init(size_t size, size_t (*hash)(void*), int (*cmp)(void*,voi
     hm->key_destruct = key_destruct;
     hm->value_destruct = value_destruct;
     pthread_mutex_init(&hm->lock, NULL);
-    // pthread_mutex_init(&hm->get_lock, NULL);
+    // pthread_mutex_init(&hm->resize_lock, NULL);
 
     return hm;
 }

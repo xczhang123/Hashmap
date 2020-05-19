@@ -7,7 +7,7 @@
 #include <assert.h>
 #include "linkedlist.h"
 
-#define HASH_MAP_DEF_CAPACITY (200)
+#define HASH_MAP_DEF_CAPACITY (100)
 
 typedef struct hash_map {
     size_t capacity;
@@ -18,6 +18,7 @@ typedef struct hash_map {
     void (*key_destruct)(void*);
     void (*value_destruct)(void*);
     pthread_mutex_t lock;
+    // pthread_mutex_t resize_lock;
 
 } hash_map;
 
