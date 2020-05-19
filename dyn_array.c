@@ -26,16 +26,6 @@ void hash_map_rehash(hash_map *hm) {
     hm->capacity *= 2;
     hm->size = 0;
     hm->data = realloc(hm->data, sizeof(*hm->data)*(hm->capacity));
-    // // Free old linkedlists and reinitializing
-    // for (size_t i = 0; i < hm->capacity/2; i++) {
-    //     linkedlist *list = hm->data[i];
-    //     // pthread_mutex_lock(&list->lock);
-    //     if (list->head != NULL) {
-    //         list_free_without_key_value(list);
-    //         hm->data[i] = list_init();
-    //     }
-    //     // pthread_mutex_unlock(&list->lock);
-    // }
     // Initialize newly created buckets
     for (size_t i = hm->capacity/2; i < hm->capacity; i++) {
         // pthread_mutex_lock(&hm->data[i]->lock);
