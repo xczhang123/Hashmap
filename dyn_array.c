@@ -8,7 +8,17 @@ void hash_map_rehash(hash_map *hm) {
     for (size_t i = 0; i < hm->capacity; i++) {
         linkedlist *list = hm->data[i];
         // pthread_mutex_lock(&list->lock);
-        list_add_all(temp, list, hm->cmp, hm->key_destruct, hm->value_destruct);
+        node *cursor = list->head;
+        while (cursor != NULL) {
+            node *next = cursor->next;
+            size_t old_hash = hm->hash(cursor->k) % hm->capacity;
+            size_t new_hash = hm->hash(cursor->k) % hm->capacity*2;
+            if (old_hash != new_hash) {
+                list_add(temp, cursor->k, cursor->v, hm->cmp, hm->key_destruct, hm->value_destruct);
+                list_delete_without_key_value(list, cursor->k, hm->cmp, hm->key_destruct, hm->value_destruct);
+            }
+            cursor = next;
+        }
         // pthread_mutex_unlock(&list->lock);
     }
 
@@ -16,16 +26,16 @@ void hash_map_rehash(hash_map *hm) {
     hm->capacity *= 2;
     hm->size = 0;
     hm->data = realloc(hm->data, sizeof(*hm->data)*(hm->capacity));
-    // Free old linkedlists and reinitializing
-    for (size_t i = 0; i < hm->capacity/2; i++) {
-        linkedlist *list = hm->data[i];
-        // pthread_mutex_lock(&list->lock);
-        if (list->head != NULL) {
-            list_free_without_key_value(list);
-            hm->data[i] = list_init();
-        }
-        // pthread_mutex_unlock(&list->lock);
-    }
+    // // Free old linkedlists and reinitializing
+    // for (size_t i = 0; i < hm->capacity/2; i++) {
+    //     linkedlist *list = hm->data[i];
+    //     // pthread_mutex_lock(&list->lock);
+    //     if (list->head != NULL) {
+    //         list_free_without_key_value(list);
+    //         hm->data[i] = list_init();
+    //     }
+    //     // pthread_mutex_unlock(&list->lock);
+    // }
     // Initialize newly created buckets
     for (size_t i = hm->capacity/2; i < hm->capacity; i++) {
         // pthread_mutex_lock(&hm->data[i]->lock);

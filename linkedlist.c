@@ -123,6 +123,38 @@ int list_delete(linkedlist *list, void *k, int (*cmp)(void*,void*), void (*key_d
     return 0;
 }
 
+int list_delete_without_key_value(linkedlist *list, void *k, int (*cmp)(void*,void*), void (*key_destruct)(void*), void (*value_destruct)(void*)) {
+    (void)key_destruct;
+    (void)value_destruct;
+    // pthread_mutex_lock(&list->lock);
+    node *curr = list->head;
+    node *prev = NULL;
+
+    while (curr != NULL) {
+        //If the key is found
+        if (find_key(curr, k, cmp) == 1) {
+            //If it is the first node
+            if (prev == NULL) {
+                list->head = curr->next; //Change the head pointer
+            } else {
+                prev->next = curr->next;
+            }
+            free(curr);
+            list->size--;
+
+            // pthread_mutex_unlock(&list->lock);
+            
+            return 1;
+        } else { //Keep searching
+            prev = curr;
+            curr = curr->next;
+        }
+    }
+
+    // pthread_mutex_unlock(&list->lock);
+    return 0;
+}
+
 node* list_next(const node *n) {
     if (n == NULL) {
         return NULL;

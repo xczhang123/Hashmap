@@ -35,6 +35,9 @@ void* list_get(linkedlist *list, void *k, int (*cmp)(void*,void*));
 int list_delete(linkedlist *list, void *k, int (*cmp)(void*,void*), 
                 void (*key_destruct)(void*), void (*value_destruct)(void*));
 
+int list_delete_without_key_value(linkedlist *list, void *k, 
+                int (*cmp)(void*,void*), void (*key_destruct)(void*), void (*value_destruct)(void*));
+
 node* list_next(const node *n);
 
 void list_free(linkedlist *list, void (*key_destruct)(void*), void (*value_destruct)(void*));

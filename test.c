@@ -247,15 +247,15 @@ int test_safe_complex() {
         c->start = i;
         c->n = n;
 
-        int n = rand() % 3;
-        if (n == 0) {
+        int nn = rand() % 3;
+        if (nn == 0) {
             pthread_create(threads+i, NULL, thread_add, a);
             i++;
             pthread_create(threads+i, NULL, thread_delete, b);
             i++;
             pthread_create(threads+i, NULL, thread_get, c);
-             i++;
-        } else if (n == 1) {
+            i++;
+        } else if (nn == 1) {
             pthread_create(threads+i, NULL, thread_delete, b);
             i++;
             pthread_create(threads+i, NULL, thread_add, a);
