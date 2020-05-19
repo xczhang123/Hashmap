@@ -7,7 +7,7 @@
 #include <assert.h>
 #include "linkedlist.h"
 
-#define HASH_MAP_DEF_CAPACITY (100)
+#define HASH_MAP_DEF_CAPACITY (16)
 
 typedef struct hash_map {
     size_t capacity;
