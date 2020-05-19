@@ -38,7 +38,6 @@ void hash_map_rehash(hash_map *hm) {
     pthread_mutex_lock(&hm->lock);
     hm->capacity *= 2;
     hm->size = 0;
-    
     // pthread_mutex_lock(&hm->resize_lock);
     hm->data = realloc(hm->data, sizeof(*hm->data)*(hm->capacity));
     // pthread_mutex_unlock(&hm->resize_lock);
