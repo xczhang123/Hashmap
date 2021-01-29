@@ -1,5 +1,6 @@
 #include "dyn_array.h"
 
+
 void hash_map_rehash(hash_map *hm) {
     //Create temporary bucket list
     linkedlist *temp = list_init();
